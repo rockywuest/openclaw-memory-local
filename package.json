@@ -1,0 +1,17 @@
+{
+  "name": "openclaw-memory-local",
+  "version": "1.0.0",
+  "description": "Three OpenClaw plugins for persistent, local-first agent memory",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "test:verbose": "node --test --test-reporter spec test/*.test.js",
+    "test:checkpoint": "node --test test/auto-checkpoint.test.js",
+    "test:capture": "node --test test/auto-capture.test.js",
+    "test:qdrant": "node --test test/memory-qdrant.test.js"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
