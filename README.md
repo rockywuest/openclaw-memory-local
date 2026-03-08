@@ -1,5 +1,7 @@
 # 🧠 openclaw-memory-local
 
+[![Tests](https://github.com/rockywuest/openclaw-memory-local/actions/workflows/test.yml/badge.svg)](https://github.com/rockywuest/openclaw-memory-local/actions/workflows/test.yml)
+
 **Your memories stay on your machine.**
 
 Three OpenClaw plugins that give your agent persistent, searchable memory — without sending a single byte to the cloud.
@@ -175,6 +177,23 @@ Optional file for verified facts (keyword-searched, not semantic):
 {"date":"2026-02-01","key":"deploy","fact":"Production runs on Hetzner CX22, IP 65.21.x.x"}
 {"date":"2026-02-10","key":"rule","fact":"Never deploy on Fridays after 16:00"}
 ```
+
+## Development
+
+```bash
+# Run all tests (zero deps — uses node:test, requires Node 20+)
+npm test
+
+# Verbose output
+npm run test:verbose
+
+# Individual plugins
+npm run test:checkpoint
+npm run test:capture
+npm run test:qdrant
+```
+
+**60 tests** covering hook registration, context injection, stale detection, message classification, skip logic, cooldown, error handling, facts search, knowledge routing, and user message extraction.
 
 ## License
 
