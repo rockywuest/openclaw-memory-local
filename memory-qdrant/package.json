@@ -1,0 +1,11 @@
+{
+  "name": "openclaw-memory-qdrant",
+  "version": "0.3.0",
+  "description": "OpenClaw plugin: semantic memory recall via Qdrant + mcporter",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "openclaw": {
+    "extensions": ["./src/index.js"]
+  },
+  "license": "MIT"
+}
