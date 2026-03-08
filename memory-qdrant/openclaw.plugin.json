@@ -1,0 +1,17 @@
+{
+  "id": "memory-qdrant",
+  "displayName": "Memory Qdrant",
+  "type": "memory",
+  "hooks": ["before_agent_start"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "serverName": { "type": "string", "default": "qdrant-memory" },
+      "factsFile": { "type": "string" },
+      "qdrantLimit": { "type": "number", "default": 5 },
+      "knowledgeMap": { "type": "object", "additionalProperties": { "type": "string" } }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "openclaw-auto-checkpoint",
+  "version": "1.0.0",
+  "description": "OpenClaw plugin: inject operational state checkpoint into every session",
+  "main": "index.js",
+  "type": "commonjs",
+  "openclaw": {
+    "extensions": ["./index.js"]
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,18 @@
+{
+  "id": "auto-checkpoint",
+  "displayName": "Auto-Checkpoint",
+  "type": "memory",
+  "hooks": ["before_agent_start", "before_compaction"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": { "type": "boolean", "default": true },
+      "workspace": { "type": "string" },
+      "checkpointFile": { "type": "string" },
+      "maxInjectChars": { "type": "number", "default": 3000 },
+      "staleThresholdMs": { "type": "number", "default": 7200000 },
+      "tzOffset": { "type": "string", "default": "+00:00" }
+    }
+  }
+}

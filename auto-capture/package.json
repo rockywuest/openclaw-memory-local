@@ -1,0 +1,11 @@
+{
+  "name": "openclaw-auto-capture",
+  "version": "1.1.0",
+  "description": "OpenClaw plugin: auto-capture corrections, decisions, facts, and lessons into Qdrant",
+  "main": "index.js",
+  "type": "commonjs",
+  "openclaw": {
+    "extensions": ["./index.js"]
+  },
+  "license": "MIT"
+}
