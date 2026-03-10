@@ -1,6 +1,7 @@
 # 🧠 openclaw-memory-local
 
 [![Tests](https://github.com/rockywuest/openclaw-memory-local/actions/workflows/test.yml/badge.svg)](https://github.com/rockywuest/openclaw-memory-local/actions/workflows/test.yml)
+[![agentskills.io](https://img.shields.io/badge/agentskills.io-compliant-brightgreen)](https://agentskills.io)
 
 **Your memories stay on your machine.**
 
@@ -197,9 +198,14 @@ npm run test:verbose
 npm run test:checkpoint
 npm run test:capture
 npm run test:qdrant
+
+# Validate agentskills.io compliance
+./scripts/validate-skills.sh
 ```
 
 **60 tests** covering hook registration, context injection, stale detection, message classification, skip logic, cooldown, error handling, facts search, knowledge routing, and user message extraction.
+
+Each plugin includes an [agentskills.io](https://agentskills.io)-compliant `SKILL.md` for cross-platform discovery. See [AGENTSKILLS-COMPLIANCE.md](AGENTSKILLS-COMPLIANCE.md) for the full report.
 
 ## License
 
