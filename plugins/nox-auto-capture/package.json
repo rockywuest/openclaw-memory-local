@@ -1,0 +1,7 @@
+{
+  "name": "nox-auto-capture",
+  "version": "1.1.0",
+  "description": "Auto-capture important facts from conversations into Qdrant",
+  "main": "index.js",
+  "private": true
+}

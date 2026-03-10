@@ -1,0 +1,16 @@
+{
+  "id": "nox-auto-capture",
+  "displayName": "Nox Auto-Capture",
+  "type": "memory",
+  "hooks": ["before_agent_start"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  }
+}
