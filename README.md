@@ -14,7 +14,7 @@ Built on [Qdrant](https://qdrant.tech/) (local vector DB) and [mcporter](https:/
 |--------|-------------|------|
 | **[auto-checkpoint](./auto-checkpoint/)** | Injects last operational state into every session. Warns when stale. Backs up before compaction. | `before_agent_start`, `before_compaction` |
 | **[memory-qdrant](./memory-qdrant/)** | Semantic memory recall — searches Qdrant + optional facts.jsonl + knowledge-file routing. | `before_agent_start` |
-| **[auto-capture](./auto-capture/)** | Listens for corrections, decisions, facts, and lessons — stores them in Qdrant automatically. | `before_agent_start` |
+| **[nox-auto-capture](./plugins/nox-auto-capture/)** | Listens for corrections, decisions, facts, and lessons — stores them in Qdrant automatically. **v2.0**: User-only capture, content deduplication, 30+ skip patterns, metadata cleaning. | `before_agent_start` |
 
 ## How It Works
 
@@ -136,11 +136,11 @@ Each plugin is configurable via `openclaw.json` plugin entries:
 }
 ```
 
-### auto-capture
+### nox-auto-capture (v2.0)
 
 ```json
 {
-  "auto-capture": {
+  "nox-auto-capture": {
     "enabled": true,
     "serverName": "qdrant-memory",
     "minMessageLength": 20,
@@ -151,6 +151,12 @@ Each plugin is configurable via `openclaw.json` plugin entries:
   }
 }
 ```
+
+**v2.0 Features:**
+- **User-only capture** — Only stores human messages, skips assistant/system
+- **Content deduplication** — SHA256-based, prevents storing identical messages
+- **30+ skip patterns** — Auto-ignores briefings, system events, exec outputs, memory operations
+- **Content cleaning** — Strips metadata envelopes (`---\nmetadata: ...\n---`) before storage
 
 ## Privacy
 
