@@ -1,0 +1,16 @@
+{
+  "id": "nox-preference-learner",
+  "displayName": "Nox Preference Learner",
+  "type": "memory",
+  "hooks": ["before_agent_start"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      }
+    }
+  }
+}
