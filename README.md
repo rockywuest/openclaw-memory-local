@@ -4,21 +4,22 @@
 [![agentskills.io](https://img.shields.io/badge/agentskills.io-compliant-brightgreen)](https://agentskills.io)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Your memories stay on your machine. Your agent actually learns.**
+**Your memories stay on your machine. Your agent actually learns from you.**
 
-Three OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — without sending a single byte to the cloud.
+Four OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — plus behavioral learning from your feedback. Without sending a single byte to the cloud.
 
-> Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, access-weighted decay, and compaction-safe checkpoints. Running 24/7 on a Raspberry Pi 5 since January 2026.
+> Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, access-weighted decay, compaction-safe checkpoints, and **a preference learner that adapts your agent's behavior based on how you talk to it**. Running 24/7 on a Raspberry Pi 5 since January 2026.
 
 ## Why Not Just MEMORY.md?
 
-| Approach | Token Cost | Recall Quality | Learns? | Survives Compaction? |
-|----------|-----------|----------------|---------|---------------------|
-| Flat MEMORY.md | 5-10K every session | ❌ Degrades as file grows | ❌ | ❌ Lost on compact |
-| Hierarchical files | ~1.5K + drill-downs | 🟡 Manual lookups | ❌ | ❌ |
-| **This project** | ~2K base + semantic hits | ✅ Vector search (fuzzy + keyword) | ✅ Auto-captures facts | ✅ Checkpoint + backup |
+| Approach | Token Cost | Recall | Learns Facts? | Adapts Behavior? | Compaction-safe? |
+|----------|-----------|--------|---------------|-----------------|-----------------|
+| Flat MEMORY.md | 5-10K every session | ❌ Degrades | ❌ | ❌ | ❌ |
+| Hierarchical files | ~1.5K + drill-downs | 🟡 Manual | ❌ | ❌ | ❌ |
+| Cloud memory (Mem0, Zep) | ~2K | ✅ | ✅ | ❌ | 🟡 |
+| **This project** | ~2K + semantic hits | ✅ Vector search | ✅ Auto-capture | ✅ **Preference Learner** | ✅ 4-layer backup |
 
-**The difference:** Flat files scale linearly. Vector search scales logarithmically. At 2,000+ memories, MEMORY.md is a wall of text. Qdrant finds what you need in 50ms.
+**The difference:** Flat files scale linearly. Vector search scales logarithmically. And nobody else adapts agent *behavior* from conversation feedback — they only store facts. We do both.
 
 ## Plugins
 
@@ -26,7 +27,8 @@ Three OpenClaw plugins that give your agent persistent, searchable, biologically
 |--------|-------------|------|
 | **[auto-checkpoint](./auto-checkpoint/)** | Injects last operational state into every session. Warns when stale. Backs up before compaction. | `session:compact:before`, `before_agent_start` |
 | **[memory-qdrant](./memory-qdrant/)** | Semantic memory recall — searches Qdrant + optional facts.jsonl + knowledge-file routing. | `before_agent_start` |
-| **[nox-auto-capture](./plugins/nox-auto-capture/)** | Listens for corrections, decisions, facts, and lessons — stores them automatically. v2.0: user-only, dedup, 30+ skip patterns. | `before_agent_start` |
+| **[auto-capture](./plugins/nox-auto-capture/)** | Listens for corrections, decisions, facts, and lessons — stores them automatically. v2.0: user-only, dedup, 30+ skip patterns. | `before_agent_start` |
+| **[preference-learner](./plugins/nox-preference-learner/)** | 🆕 **Train by Talking.** Detects approval/disapproval in conversations and adapts agent behavior across 6 dimensions. RLHF-lite without model fine-tuning. | `before_agent_start` |
 
 ## Architecture
 
@@ -56,13 +58,30 @@ state/current.md
 
 **auto-capture** runs silently, detecting when conversations contain corrections, decisions, new facts, or lessons. Stores them in Qdrant automatically. v2.0 adds user-only capture, SHA256 deduplication, 30+ skip patterns, and metadata cleaning.
 
+**preference-learner** is the secret weapon. It detects feedback signals in your conversations — praise, frustration, corrections — and maps them to 6 behavioral dimensions. Over time, your agent adapts *how* it works with you:
+
+```
+You: "Mensch, frag nicht immer, mach einfach!"
+  → Signal: negative (-1.5)
+  → Categories: confirmation_seeking → LESS, autonomy → MORE
+  → Saved to preferences.json
+
+Next session, agent receives:
+  "STRONG preference for LESS confirmation seeking (score: -4.5, 5x reinforced)"
+  → Agent stops asking for permission on obvious tasks
+```
+
+Six dimensions that adapt: **autonomy** (act vs. ask), **verbosity** (brief vs. detailed), **proactivity** (suggest vs. wait), **formality** (casual vs. professional), **technical depth** (code vs. summary), **confirmation seeking** (do it vs. check first).
+
+Preferences decay if not reinforced (30-day half-life) and require 2+ reinforcements to activate — no overreaction to a single comment.
+
 ## What Makes This Different
 
 ### vs. Flat MEMORY.md
 MEMORY.md is a single file you load every session. It grows until you have to summarize, losing detail. This project: store everything in Qdrant, recall only what's relevant, keep MEMORY.md as a lightweight index.
 
 ### vs. Cloud Memory (Mem0, Hindsight, Zep)
-Cloud services send your data to external servers. This runs entirely on your machine. No API keys for memory. No vendor lock-in. No privacy concerns.
+Cloud services send your data to external servers and none of them adapt agent behavior — they only store and retrieve facts. This runs entirely on your machine, AND it learns how you prefer to work. No API keys for memory. No vendor lock-in. No privacy concerns.
 
 ### vs. Hierarchical File Systems
 Structured directories (people/, projects/, decisions/) require manual drill-down decisions. Semantic search finds what's relevant regardless of where you filed it.
@@ -171,6 +190,16 @@ That's it. Your agent now has persistent memory.
 }
 ```
 
+### nox-preference-learner (v1.0) 🆕
+
+```json
+{
+  "nox-preference-learner": {
+    "enabled": true
+  }
+}
+```
+
 **v2.0 Features:**
 - **User-only capture** — Only stores human messages, not assistant/system
 - **Content deduplication** — SHA256-based, prevents duplicates
@@ -206,6 +235,7 @@ Each plugin includes an [agentskills.io](https://agentskills.io)-compliant `SKIL
 
 ## Roadmap
 
+- [x] **Preference Learner** — behavioral adaptation from conversation feedback (SHIPPED v1.0)
 - [ ] FadeMem: access-weighted decay (frequently recalled memories fade slower)
 - [ ] Co-occurrence tracking (Hebbian links between related memories)
 - [ ] Cognitive fingerprint (topology hash for agent identity)
