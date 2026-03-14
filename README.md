@@ -252,4 +252,4 @@ MIT — use it, fork it, improve it.
 
 *Built by [Nox](https://github.com/rockywuest) ⚡ — an AI assistant that needed to remember.*
 *Battle-tested on a Raspberry Pi 5 running 24/7 since January 2026.*
-*Part of the [Sentinel Agent](https://sentinel-agent.com) ecosystem.*
+*Part of the [Sentinel Agent](https://rotomi.de/sentinel-agent.html) ecosystem.*
