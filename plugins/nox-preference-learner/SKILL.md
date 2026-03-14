@@ -15,7 +15,8 @@ compatibility: OpenClaw 2026.1.30+, Node.js >= 20
 
 Listens to your conversations and detects feedback signals:
 - **Positive**: "perfekt", "genau so", "gut gemacht", "mach", 👍, 💪
-- **Negative**: "falsch", "nervt", "mensch nox", "nie wieder", "frag nicht"
+- **Negative**: "wrong", "annoying", "stop that", "never again", "don't ask"  
+  Also detects German: "falsch", "nervt", "frag nicht"
 
 Maps signals to 6 behavioral dimensions:
 1. **Autonomy** — act independently vs. ask first
@@ -32,7 +33,7 @@ strong preferences. Occasional remarks create mild nudges.
 ## How It Works
 
 ```
-User says "Mensch Nox, frag nicht immer!"
+User says "Stop asking me every time, just do it!"
   → Signal: negative (-1.5)
   → Category: confirmation_seeking → LESS
   → Category: autonomy → MORE

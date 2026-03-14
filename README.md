@@ -61,7 +61,7 @@ state/current.md
 **preference-learner** is the secret weapon. It detects feedback signals in your conversations — praise, frustration, corrections — and maps them to 6 behavioral dimensions. Over time, your agent adapts *how* it works with you:
 
 ```
-You: "Mensch, frag nicht immer, mach einfach!"
+You: "Dude, stop asking for permission every time — just do it!"
   → Signal: negative (-1.5)
   → Categories: confirmation_seeking → LESS, autonomy → MORE
   → Saved to preferences.json
