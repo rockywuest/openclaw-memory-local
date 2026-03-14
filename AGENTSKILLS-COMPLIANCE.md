@@ -83,6 +83,5 @@ npm test
 
 ## Next Steps
 
-1. **maintainer approval** → Submit to ClawhHub
-2. Add `agentskills.io` badge to main README
-3. Consider submitting to agentskills.io registry (if they have one)
+- Submit to ClawhHub marketplace
+- Submit to agentskills.io registry (if available)

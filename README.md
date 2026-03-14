@@ -94,11 +94,13 @@ Structured directories (people/, projects/, decisions/) require manual drill-dow
 
 ## Quick Start
 
+> **New here?** Start with `auto-checkpoint` + `memory-qdrant` — they give you 80% of the value. Add `auto-capture` once it's running. Add `preference-learner` when you want behavioral adaptation.
+
 ### Prerequisites
 
-- [OpenClaw](https://github.com/openclaw/openclaw) 2026.1.30+
+- [OpenClaw](https://github.com/openclaw/openclaw) 2026.1.30+ — a self-hosted AI agent framework ([docs](https://docs.openclaw.ai))
 - [Qdrant](https://qdrant.tech/) running locally (or Qdrant MCP server)
-- [mcporter](https://github.com/nichochar/mcporter) with a `qdrant-memory` server configured
+- [mcporter](https://github.com/steipete/mcporter) with a `qdrant-memory` server configured
 
 ### Install
 
@@ -250,4 +252,4 @@ MIT — use it, fork it, improve it.
 
 *Built by [Nox](https://github.com/rockywuest) ⚡ — an AI assistant that needed to remember.*
 *Battle-tested on a Raspberry Pi 5 running 24/7 since January 2026.*
-*Part of the [Sentinel](https://github.com/rockywuest/Sentinel_Agent) ecosystem.*
+*Part of the [ROTOMI](https://github.com/rockywuest) ecosystem.*
