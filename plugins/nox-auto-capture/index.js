@@ -8,7 +8,7 @@
  * v2.0 Changes:
  * - Aggressive content cleaning (metadata envelopes, system events)
  * - Semantic deduplication before storing (search → skip if exists)
- * - Only captures from user role (Rocky), not assistant/system
+ * - Only captures from user role (the human user), not assistant/system
  * - Comprehensive skip patterns (watchdog, crons, retries, heartbeats)
  */
 
@@ -16,7 +16,7 @@ const { execSync, execFileSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-const LOG_FILE = "/home/piclawbot/clawd/memory/auto-capture.log";
+const LOG_FILE = process.env.CAPTURE_LOG_FILE || path.join(process.env.OPENCLAW_WORKSPACE || process.env.HOME || ".", "memory", "auto-capture.log");
 const MIN_MESSAGE_LENGTH = 30;
 const MAX_STORE_LENGTH = 500;
 const COOLDOWN_MS = 15_000;
@@ -208,7 +208,7 @@ async function beforeAgentStart(event, ctx) {
 
   let captured = 0;
 
-  // Only look at recent USER messages (Rocky's words, not mine)
+  // Only look at recent USER messages (not assistant/system)
   const recentUserMsgs = messages
     .slice(-6)
     .filter(m => m?.role === "user");
@@ -224,7 +224,7 @@ async function beforeAgentStart(event, ctx) {
 
     const dateStr = new Date().toISOString().slice(0, 10);
     const catLabel = categories.join("+");
-    const storageText = `[${dateStr}|${catLabel}|rocky] ${content}`;
+    const storageText = `[${dateStr}|${catLabel}|user] ${content}`;
 
     // Dedup check
     if (isDuplicate(storageText)) {
@@ -265,7 +265,7 @@ function register(api) {
 const plugin = {
   id: "nox-auto-capture",
   name: "Nox Auto-Capture",
-  description: "Captures corrections, decisions, facts, and lessons from Rocky into Qdrant (v2.0: dedup + clean)",
+  description: "Captures corrections, decisions, facts, and lessons from conversations into Qdrant (v2.0: dedup + clean)",
   configSchema: {
     type: "object",
     additionalProperties: false,

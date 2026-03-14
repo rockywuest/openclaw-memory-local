@@ -74,8 +74,8 @@ Agent gets: "ERINNERUNG: [memories + facts + hints]"
 `facts.jsonl` contains one JSON object per line — human-verified facts that override fuzzy memory:
 
 ```jsonl
-{"fact": "PiDog battery shows 6.5V — this is a hardware problem, NOT software", "date": "2026-02-15", "source": "Rocky"}
-{"fact": "OpenRouter is deactivated since Feb 2026", "date": "2026-02-10", "source": "Rocky"}
+{"fact": "The API timeout is 30s not 60s — confirmed in production", "date": "2026-03-01", "source": "user"}
+{"fact": "We use local Qdrant, not cloud — decided in January", "date": "2026-01-15", "source": "user"}
 ```
 
 ## Knowledge Routing

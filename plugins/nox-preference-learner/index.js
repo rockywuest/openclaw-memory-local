@@ -24,7 +24,7 @@ const crypto = require("crypto");
 // ── Config ───────────────────────────────────────────────────────
 
 const PREFS_FILE = process.env.PREFS_FILE ||
-  path.join(process.env.HOME || "/home/piclawbot", "clawd", "memory", "preferences.json");
+  path.join(process.env.OPENCLAW_WORKSPACE || process.env.HOME || ".", "memory", "preferences.json");
 const LOG_FILE = path.join(path.dirname(PREFS_FILE), "preference-learner.log");
 const MAX_INJECT_CHARS = 1500;
 const COOLDOWN_MS = 5_000;
@@ -232,7 +232,7 @@ function buildPreferenceContext(prefs) {
   if (active.length === 0) return "";
 
   let ctx = "## LEARNED PREFERENCES (from conversation feedback)\n";
-  ctx += "These behavioral preferences were learned from Rocky's direct feedback.\n";
+  ctx += "These behavioral preferences were learned from the user's direct feedback.\n";
   ctx += "Stronger scores = more consistent feedback. Apply them.\n\n";
 
   for (const [name, data] of active) {

@@ -172,7 +172,7 @@ describe("memory-qdrant", () => {
         });
         mockExecFileResults.push({
           stdout: JSON.stringify([
-            { id: "1", score: 0.95, content: "Rocky likes bullet points" },
+            { id: "1", score: 0.95, content: "User prefers bullet points" },
             { id: "2", score: 0.88, content: "Deploy on Tuesdays" },
           ]),
         });
@@ -183,7 +183,7 @@ describe("memory-qdrant", () => {
         const results = await client.searchMemories("deploy preferences", 5);
 
         assert.ok(results.length === 2);
-        assert.equal(results[0].content, "Rocky likes bullet points");
+        assert.equal(results[0].content, "User prefers bullet points");
         assert.ok(results[0].score > 0.9);
       });
 
