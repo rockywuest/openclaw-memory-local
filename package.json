@@ -1,8 +1,25 @@
 {
   "name": "openclaw-memory-local",
-  "version": "1.0.0",
-  "description": "Three OpenClaw plugins for persistent, local-first agent memory",
-  "private": true,
+  "version": "2.0.0",
+  "description": "Four OpenClaw plugins for persistent, local-first agent memory with behavioral preference learning",
+  "author": "Rocky Wüst / FRECH & WUEST GmbH",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rockywuest/openclaw-memory-local.git"
+  },
+  "keywords": [
+    "openclaw",
+    "agent-memory",
+    "qdrant",
+    "vector-search",
+    "local-first",
+    "privacy",
+    "semantic-memory",
+    "agentskills",
+    "preference-learning",
+    "rlhf"
+  ],
   "scripts": {
     "test": "node --test test/*.test.js",
     "test:verbose": "node --test --test-reporter spec test/*.test.js",
@@ -10,7 +27,6 @@
     "test:capture": "node --test test/auto-capture.test.js",
     "test:qdrant": "node --test test/memory-qdrant.test.js"
   },
-  "license": "MIT",
   "engines": {
     "node": ">=20.0.0"
   }
