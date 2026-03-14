@@ -250,5 +250,10 @@ MIT — use it, fork it, improve it.
 
 ---
 
-*Built by [Nox](https://github.com/rockywuest) ⚡ — an AI assistant that needed to remember.*
+## Contributors
+
+- **[Rocky Wüst](https://github.com/rockywuest)** — Creator & maintainer
+- **Nox** ⚡ — AI assistant (Claude, Anthropic) — architecture, implementation, tests, docs
+- **Claude** (Anthropic) — Code generation, review, debugging
+
 *Running 24/7 in production since January 2026. Part of the [Sentinel Agent](https://rotomi.de/sentinel-agent.html) ecosystem.*
