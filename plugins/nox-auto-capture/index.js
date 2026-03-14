@@ -28,6 +28,7 @@ let lastCaptureTime = 0;
 
 const SKIP_PATTERNS = [
   // Greetings & trivial
+  // Skip short greetings (EN + DE)
   /^(hi|hey|hallo|moin|ok|ja|nein|danke|thanks|super|👍|❤️|😂|cool|gut|passt|alles klar)[\s.!]*$/i,
   // System
   /^HEARTBEAT/i,
@@ -69,8 +70,9 @@ const SKIP_PATTERNS = [
 // ── Pattern Detection (what IS worth capturing) ──────────────────
 
 const CORRECTION_PATTERNS = [
+  // Multilingual correction detection (EN + DE)
   /\b(nein|falsch|stimmt nicht|nicht richtig|das ist falsch|korrektur|korrigier)/i,
-  /\b(actually|wrong|incorrect|that's not)\b/i,
+  /\b(actually|wrong|incorrect|correction|that's not)\b/i,
   /\b(ALTER|WIE OFT DENN NOCH|echt enttäuscht)/i,
 ];
 

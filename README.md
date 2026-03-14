@@ -8,7 +8,7 @@
 
 Four OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — plus behavioral learning from your feedback. Without sending a single byte to the cloud.
 
-> Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, access-weighted decay, compaction-safe checkpoints, and **a preference learner that adapts your agent's behavior based on how you talk to it**. Running 24/7 on a Raspberry Pi 5 since January 2026.
+> Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, access-weighted decay, compaction-safe checkpoints, and **a preference learner that adapts your agent's behavior based on how you talk to it**. Running 24/7 in production since January 2026.
 
 ## Why Not Just MEMORY.md?
 
@@ -48,7 +48,7 @@ state/current.md
     └──→ Agent gets: checkpoint + memories + facts + knowledge hints
 ```
 
-**Total overhead per session start: < 500ms** on a Raspberry Pi 5.
+**Total overhead per session start: < 500ms** (tested on ARM64 and x86).
 
 ### How Each Plugin Works
 
@@ -89,8 +89,8 @@ Structured directories (people/, projects/, decisions/) require manual drill-dow
 ### Production-Proven
 - **2,000+ memories** stored and recalled daily
 - **4-layer compaction mitigation** (checkpoint backup → auto-checkpoint → compaction-summarizer → context re-injection)
-- **Embodied AI tested** — runs alongside a robot dog (PiDog) with sensor memory capture
-- Running continuously since January 2026 on ARM64 (Raspberry Pi 5, 8GB)
+- **Embodied AI tested** — also used with a robot dog for sensor memory capture
+- Running continuously since January 2026 (works on everything from a Raspberry Pi to a cloud server)
 
 ## Quick Start
 
@@ -109,7 +109,7 @@ Structured directories (people/, projects/, decisions/) require manual drill-dow
 git clone https://github.com/rockywuest/openclaw-memory-local.git
 cd openclaw-memory-local
 
-# Set up Qdrant (lightweight MCP server — ideal for Pi/ARM)
+# Set up Qdrant (lightweight MCP server)
 pip3 install mcp-server-qdrant
 mcporter config add qdrant-memory stdio \
   --command "python3 -m mcp_server_qdrant" \
@@ -213,7 +213,7 @@ That's it. Your agent now has persistent memory.
 Optional file for verified, keyword-searched facts:
 
 ```jsonl
-{"date":"2026-01-15","key":"office","fact":"Office is at Gertrudenstraße 15, 23568 Lübeck"}
+{"date":"2026-01-15","key":"office","fact":"Main office is at 123 Innovation Drive, Building C"}
 {"date":"2026-02-01","key":"deploy","fact":"Production runs on Hetzner CX22, IP 65.21.x.x"}
 {"date":"2026-02-10","key":"rule","fact":"Never deploy on Fridays after 16:00"}
 ```
@@ -251,5 +251,4 @@ MIT — use it, fork it, improve it.
 ---
 
 *Built by [Nox](https://github.com/rockywuest) ⚡ — an AI assistant that needed to remember.*
-*Battle-tested on a Raspberry Pi 5 running 24/7 since January 2026.*
-*Part of the [Sentinel Agent](https://rotomi.de/sentinel-agent.html) ecosystem.*
+*Running 24/7 in production since January 2026. Part of the [Sentinel Agent](https://rotomi.de/sentinel-agent.html) ecosystem.*

@@ -6,7 +6,7 @@
  * into Qdrant via mcporter.
  *
  * What gets captured:
- * - Corrections ("nein, das stimmt nicht", "wrong", etc.)
+ * - Corrections ("wrong", "that's not right", etc. — supports EN+DE)
  * - Decisions ("wir machen X", "let's do X")
  * - Facts (dates, prices, contacts, versions)
  * - Lessons ("Fehler", "nie wieder", "rule")
@@ -32,8 +32,9 @@ const DEFAULT_COOLDOWN_MS = 10_000;
 // ── Pattern Detection ────────────────────────────────────────────
 
 const CORRECTION_PATTERNS = [
+  // Multilingual correction detection (EN + DE)
   /\b(nein|falsch|stimmt nicht|nicht richtig|das ist falsch|korrektur|korrigier)/i,
-  /\b(actually|wrong|incorrect|that's not|no,\s)/i,
+  /\b(actually|wrong|incorrect|correction|that's not|no,\s)/i,
 ];
 
 const DECISION_PATTERNS = [
@@ -54,6 +55,7 @@ const LESSON_PATTERNS = [
 ];
 
 const DEFAULT_SKIP_PATTERNS = [
+  // Skip short greetings (EN + DE)
   /^(hi|hey|hallo|moin|ok|ja|nein|danke|thanks|👍|❤️|😂)$/i,
   /^HEARTBEAT/i,
   /^NO_REPLY$/,
