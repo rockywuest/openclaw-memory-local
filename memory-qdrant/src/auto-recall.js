@@ -10,7 +10,7 @@ const { searchMemories, isHealthy } = require("./qdrant-client.js");
 const fs = require("fs");
 const path = require("path");
 
-// ── Stop words (German + English) ────────────────────────────────
+// ── Stop words (multilingual: English + German) ─────────────────
 
 const STOP_WORDS = new Set([
   "und", "oder", "der", "die", "das", "ein", "eine", "ist", "sind", "was",

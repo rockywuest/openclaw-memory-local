@@ -123,7 +123,7 @@ describe("auto-capture", () => {
 
       await hook({
         messages: [
-          { role: "user", content: "Nein, das stimmt nicht! Der Termin ist am Freitag." },
+          { role: "user", content: "No, that's wrong! The meeting is on Friday." },
         ],
       }, {});
 
@@ -320,7 +320,7 @@ describe("auto-capture", () => {
 
       // First call — should capture
       await hook({
-        messages: [{ role: "user", content: "Nein, das stimmt nicht! Die Version ist 2.0." }],
+        messages: [{ role: "user", content: "No, that's not right! The version is 2.0." }],
       }, {});
       const firstCallCount = mockExecFileCalls.length;
       assert.ok(firstCallCount >= 1, "First call should capture");
@@ -347,7 +347,7 @@ describe("auto-capture", () => {
 
       // Should not throw
       const result = await hook({
-        messages: [{ role: "user", content: "Nein, das stimmt nicht! Korrektur nötig." }],
+        messages: [{ role: "user", content: "Wrong — that needs correction." }],
       }, {});
 
       assert.equal(result, undefined, "Should return undefined (no injection)");
@@ -387,7 +387,7 @@ describe("auto-capture", () => {
       plugin.register(api);
 
       await hook({
-        prompt: "Korrektur: Der Deploy war am Dienstag, nicht Mittwoch.",
+        prompt: "Correction: the deploy was Tuesday, not Wednesday.",
       }, {});
 
       assert.ok(mockExecFileCalls.length >= 1, "Should capture from prompt fallback");
@@ -408,7 +408,7 @@ describe("auto-capture", () => {
       plugin.register(api);
 
       await hook({
-        messages: [{ role: "user", content: "Nein, das stimmt nicht! Es waren 5 Bugs." }],
+        messages: [{ role: "user", content: "No, that's wrong! There were 5 bugs." }],
       }, {});
 
       assert.ok(fs.existsSync(logPath), "Log file should be created");
