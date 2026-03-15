@@ -6,11 +6,26 @@
   "author": "Nox AIE",
   "type": "aie-cognitive",
   "entry": "./index.js",
-  "hooks": ["before_agent_start"],
-  "exports": ["getFingerprint", "checkDrift"],
+  "hooks": [
+    "before_agent_start"
+  ],
+  "exports": [
+    "getFingerprint",
+    "checkDrift"
+  ],
   "config": {
     "enabled": true,
     "driftThreshold": 0.2,
     "cooldownHours": 24
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      }
+    }
   }
 }
