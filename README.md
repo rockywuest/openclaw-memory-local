@@ -6,92 +6,79 @@
 
 **Your memories stay on your machine. Your agent actually learns from you.**
 
-Seven OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — plus behavioral learning from your feedback and ambient intelligence. Without sending a single byte to the cloud.
+Seven OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — with behavioral learning, ambient intelligence, and emergency alerting. Without sending a single byte to the cloud.
 
-> Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, access-weighted decay, compaction-safe checkpoints, and **a preference learner that adapts your agent's behavior based on how you talk to it**. Running 24/7 in production since January 2026.
+> Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, behavioral adaptation, ambient awareness, and emergency escalation — all local, all open source. Running 24/7 in production since January 2026.
 
 ## Why Not Just MEMORY.md?
 
-| Approach | Token Cost | Recall | Learns Facts? | Adapts Behavior? | Compaction-safe? |
+| Approach | Token Cost | Recall | Learns Facts? | Adapts Behavior? | Watches for You? |
 |----------|-----------|--------|---------------|-----------------|-----------------|
 | Flat MEMORY.md | 5-10K every session | ❌ Degrades | ❌ | ❌ | ❌ |
 | Hierarchical files | ~1.5K + drill-downs | 🟡 Manual | ❌ | ❌ | ❌ |
-| Cloud memory (Mem0, Zep) | ~2K | ✅ | ✅ | ❌ | 🟡 |
-| **This project** | ~2K + semantic hits | ✅ Vector search | ✅ Auto-capture | ✅ **Preference Learner** | ✅ 4-layer backup |
+| Cloud memory (Mem0, Zep) | ~2K | ✅ | ✅ | ❌ | ❌ |
+| **This project** | ~2K + semantic hits | ✅ Vector search | ✅ Auto-capture | ✅ Preference Learner | ✅ Ambient Intelligence |
 
-**The difference:** Flat files scale linearly. Vector search scales logarithmically. And nobody else adapts agent *behavior* from conversation feedback — they only store facts. We do both.
+Flat files scale linearly. Vector search scales logarithmically. Nobody else adapts agent *behavior* from conversation feedback — they only store facts. And nobody else watches for urgent events and surfaces them proactively.
 
 ## Plugins
 
-### Core Memory System
+| Plugin | What it does | Layer |
+|--------|-------------|-------|
+| **[auto-checkpoint](./auto-checkpoint/)** | Injects last operational state. Warns when stale. Backs up before compaction. | Remember |
+| **[memory-qdrant](./memory-qdrant/)** | Semantic recall — searches Qdrant + facts.jsonl + knowledge-file routing. | Recall |
+| **[auto-capture](./plugins/nox-auto-capture/)** | Detects corrections, decisions, facts, lessons — stores them automatically. | Learn |
+| **[preference-learner](./plugins/nox-preference-learner/)** | **Train by Talking.** Adapts agent behavior across 6 dimensions from your feedback. | Adapt |
+| **[event-bus](./plugins/nox-event-bus/)** | Central event bus. Sensors and insights flow through here. JSONL persistence. | Sense |
+| **[preconscious](./plugins/nox-preconscious/)** | Scores events by importance × recency. Surfaces top insights as context. | Anticipate |
+| **[emergency](./plugins/nox-emergency/)** | Escalates urgent events. Dedup, rate limiting, TTL expiry detection. | Alert |
 
-| Plugin | What it does | Hook |
-|--------|-------------|------|
-| **[auto-checkpoint](./auto-checkpoint/)** | Injects last operational state into every session. Warns when stale. Backs up before compaction. | `session:compact:before`, `before_agent_start` |
-| **[memory-qdrant](./memory-qdrant/)** | Semantic memory recall — searches Qdrant + optional facts.jsonl + knowledge-file routing. | `before_agent_start` |
-| **[auto-capture](./plugins/nox-auto-capture/)** | Listens for corrections, decisions, facts, and lessons — stores them automatically. v2.0: user-only, dedup, 30+ skip patterns. | `before_agent_start` |
-| **[preference-learner](./plugins/nox-preference-learner/)** | 🆕 **Train by Talking.** Detects approval/disapproval in conversations and adapts agent behavior across 6 dimensions. RLHF-lite without model fine-tuning. | `before_agent_start` |
-
-### Ambient Intelligence Engine (AIE) — v3.0 🆕
-
-Inspired by [Total Recall](https://github.com/gavdalf/total-recall), but **OpenClaw-native** (Node.js plugins, not shell scripts).
-
-| Plugin | What it does | Hook |
-|--------|-------------|------|
-| **[nox-event-bus](./plugins/nox-event-bus/)** | Central event bus for sensors and insights. Persists events as JSONL, auto-prunes old entries, injects recent relevant events as context. | `before_agent_start` |
-| **[nox-preconscious](./plugins/nox-preconscious/)** | Preconscious buffer — scores events by importance × recency × reinforcement, surfaces top-N insights in Markdown (max 500 tokens). | `before_agent_start` |
-| **[nox-emergency](./plugins/nox-emergency/)** | Emergency surface — escalates urgent events (importance ≥ 0.85) and expiring TTLs. Dedup via SHA256, rate-limited (2 alerts/day). | `before_agent_start` |
+All plugins hook into `before_agent_start` — your agent gets the full picture before every response.
 
 ## Architecture
 
-### Core Memory Flow
-
 ```
-User message → OpenClaw Gateway
-                    │
-    ┌───────────────┼───────────────┐
-    ▼               ▼               ▼
-auto-checkpoint  memory-qdrant  auto-capture
-    │               │               │
-    │               ▼               ▼
-    │          Qdrant (local)  Qdrant (local)
-    │          mcporter CLI    mcporter CLI
-    ▼
-state/current.md
-    │
-    └──→ Agent gets: checkpoint + memories + facts + knowledge hints
-```
-
-### Ambient Intelligence Engine (AIE)
-
-```
-Sensors (email, calendar, file, system)
-    │
-    ▼
-nox-event-bus (JSONL persistence)
-    │
-    ├──→ nox-preconscious (scoring + buffer)
-    │        │
-    │        └──→ memory/preconscious-buffer.md (top-5 insights)
-    │
-    └──→ nox-emergency (urgent + expiring)
-             │
-             └──→ memory/emergency-alerts.jsonl
-                      │
-                      └──→ Agent gets: ⚠️ URGENT context injection
+                    External World
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+     [Sensors]      [User Talk]    [Agent Work]
+     email, cal,    corrections,   checkpoints,
+     files, system  decisions      state changes
+          │              │              │
+          ▼              ▼              ▼
+    ┌─────────────── event-bus ──────────────────┐
+    │            (JSONL persistence)              │
+    └──────┬─────────────┬──────────────┬────────┘
+           │             │              │
+           ▼             ▼              ▼
+     preconscious   auto-capture   emergency
+     (score+buffer) (→ Qdrant)     (urgent alerts)
+           │             │              │
+           ▼             ▼              ▼
+    ┌────────────────────────────────────────────┐
+    │          Session Context Injection          │
+    │                                            │
+    │  checkpoint + memories + preferences       │
+    │  + preconscious buffer + emergency alerts  │
+    └────────────────────────────────────────────┘
+           │             │              │
+           ▼             ▼              ▼
+     auto-checkpoint  memory-qdrant  preference-learner
+     (state/current)  (vector search) (behavioral scores)
 ```
 
 **Total overhead per session start: < 500ms** (tested on ARM64 and x86).
 
-### How Each Plugin Works
+## How It Works
 
 **auto-checkpoint** reads your `state/current.md` and injects it as context. Your agent always knows where it left off — even after context compaction. Before compaction, it backs up the current state so nothing is lost.
 
 **memory-qdrant** searches your local Qdrant for semantically relevant memories, matches keywords against a `facts.jsonl` file (verified facts, keyword-searched), and hints at relevant knowledge files based on configurable topic routing.
 
-**auto-capture** runs silently, detecting when conversations contain corrections, decisions, new facts, or lessons. Stores them in Qdrant automatically. v2.0 adds user-only capture, SHA256 deduplication, 30+ skip patterns, and metadata cleaning.
+**auto-capture** runs silently, detecting when conversations contain corrections, decisions, new facts, or lessons. Stores them in Qdrant automatically. User-only capture, SHA256 deduplication, 30+ skip patterns, metadata cleaning.
 
-**preference-learner** is the secret weapon. It detects feedback signals in your conversations — praise, frustration, corrections — and maps them to 6 behavioral dimensions. Over time, your agent adapts *how* it works with you:
+**preference-learner** detects feedback signals in your conversations — praise, frustration, corrections — and maps them to 6 behavioral dimensions. Over time, your agent adapts *how* it works with you:
 
 ```
 You: "Dude, stop asking for permission every time — just do it!"
@@ -104,74 +91,57 @@ Next session, agent receives:
   → Agent stops asking for permission on obvious tasks
 ```
 
-Six dimensions that adapt: **autonomy** (act vs. ask), **verbosity** (brief vs. detailed), **proactivity** (suggest vs. wait), **formality** (casual vs. professional), **technical depth** (code vs. summary), **confirmation seeking** (do it vs. check first).
+Six dimensions: **autonomy**, **verbosity**, **proactivity**, **formality**, **technical depth**, **confirmation seeking**. Preferences decay if not reinforced (30-day half-life) — no overreaction to a single comment.
 
-Preferences decay if not reinforced (30-day half-life) and require 2+ reinforcements to activate — no overreaction to a single comment.
+**event-bus** is the nervous system. Any plugin or sensor can emit events with a topic, importance score, and TTL. Events persist as JSONL and auto-prune after 7 days. At session start, the most relevant recent events are injected as context.
+
+**preconscious** watches the event bus and asks: "What's important right now, even if nobody asked?" It scores events by `importance × recency_decay × reinforcement_count` and writes the top 5 as a Markdown buffer (max 500 tokens). Your agent gets ambient awareness without being overwhelmed.
+
+**emergency** watches for critical events (importance ≥ 0.85) and soon-to-expire TTLs. Deduplicates via SHA256, rate-limits to 2 alerts per day, and injects unhandled alerts as priority context. Your agent sees `⚠️ URGENT` before anything else.
 
 ## What Makes This Different
 
 ### vs. Flat MEMORY.md
-MEMORY.md is a single file you load every session. It grows until you have to summarize, losing detail. This project: store everything in Qdrant, recall only what's relevant, keep MEMORY.md as a lightweight index.
+MEMORY.md grows until you summarize, losing detail. This project stores everything in Qdrant, recalls only what's relevant, and keeps MEMORY.md as a lightweight index.
 
-### vs. Cloud Memory (Mem0, Hindsight, Zep)
-Cloud services send your data to external servers and none of them adapt agent behavior — they only store and retrieve facts. This runs entirely on your machine, AND it learns how you prefer to work. No API keys for memory. No vendor lock-in. No privacy concerns.
+### vs. Cloud Memory (Mem0, Zep)
+Cloud services send your data elsewhere and none adapt agent behavior. This runs on your machine, learns how you work, AND watches for problems proactively.
 
-### vs. Hierarchical File Systems
-Structured directories (people/, projects/, decisions/) require manual drill-down decisions. Semantic search finds what's relevant regardless of where you filed it.
+### vs. [Total Recall](https://github.com/gavdalf/total-recall)
+Total Recall pioneered ambient intelligence for agents. We build on that foundation:
+
+| | Total Recall | This project |
+|---|---|---|
+| Runtime | Shell (bash + jq + python) | Node.js (OpenClaw plugins) |
+| Scheduling | Cron jobs | Runs on every session start |
+| Dependencies | jq, python, PyYAML | Node.js stdlib only |
+| Testing | Manual | 106 automated tests |
+| Integration | Standalone scripts | Native OpenClaw hooks |
+| Emergency | Webhook/Telegram | Context injection + dedup |
+| Extensibility | Fork scripts | Import + event listeners |
 
 ### Production-Proven
 - **2,000+ memories** stored and recalled daily
 - **4-layer compaction mitigation** (checkpoint backup → auto-checkpoint → compaction-summarizer → context re-injection)
-- **Embodied AI tested** — also used with a robot dog for sensor memory capture
-- Running continuously since January 2026 (works on everything from a Raspberry Pi to a cloud server)
-
-### AIE vs. Total Recall
-
-Total Recall pioneered ambient intelligence for agents. We build on that foundation with OpenClaw-native implementation:
-
-| Feature | Total Recall | AIE (this project) |
-|---------|-------------|-------------------|
-| Language | Shell (bash + jq + python) | JavaScript (Node.js) |
-| Event Bus | JSONL file | JSONL + in-memory listeners |
-| Preconscious Buffer | Shell script | Plugin with scoring engine |
-| Emergency Surface | Cron + shell | Plugin with rate limiting + dedup |
-| Integration | Standalone scripts | OpenClaw plugin hooks |
-| Dependencies | jq, python, PyYAML | Node.js stdlib only |
-| Extensibility | Fork scripts | Import as library + hooks |
-| Testing | Manual | 45 automated tests |
-
-**What we kept from Total Recall:**
-- Event-driven architecture
-- Importance scoring with recency decay
-- TTL-based expiry
-- Emergency escalation
-
-**What we improved:**
-- Native OpenClaw integration (no cron needed — runs on every session start)
-- Zero external dependencies (no jq, no PyYAML)
-- Testable architecture (100% coverage on core logic)
-- Event listeners (plugins can react to events in real-time)
-- Deduplication (SHA256-based, prevents duplicate alerts)
-- Token limiting (preconscious buffer auto-truncates)
+- **Embodied AI tested** — also used with a robot dog for sensor memory
+- Running continuously since January 2026 on a Raspberry Pi 5
 
 ## Quick Start
 
-> **New here?** Start with `auto-checkpoint` + `memory-qdrant` — they give you 80% of the value. Add `auto-capture` once it's running. Add `preference-learner` when you want behavioral adaptation.
+> Start with `auto-checkpoint` + `memory-qdrant` — they give you 80% of the value. Add plugins as you need them.
 
 ### Prerequisites
 
-- [OpenClaw](https://github.com/openclaw/openclaw) 2026.1.30+ — a self-hosted AI agent framework ([docs](https://docs.openclaw.ai))
+- [OpenClaw](https://github.com/openclaw/openclaw) 2026.1.30+
 - [Qdrant](https://qdrant.tech/) running locally (or Qdrant MCP server)
 - [mcporter](https://github.com/steipete/mcporter) with a `qdrant-memory` server configured
 
 ### Install
 
 ```bash
-# Clone
 git clone https://github.com/rockywuest/openclaw-memory-local.git
 cd openclaw-memory-local
 
-# Set up Qdrant (lightweight MCP server)
 pip3 install mcp-server-qdrant
 mcporter config add qdrant-memory stdio \
   --command "python3 -m mcp_server_qdrant" \
@@ -180,7 +150,7 @@ mcporter config add qdrant-memory stdio \
 
 ### Configure OpenClaw
 
-Add to your `~/.openclaw/openclaw.json`:
+Add to `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -189,13 +159,12 @@ Add to your `~/.openclaw/openclaw.json`:
       "paths": [
         "/path/to/openclaw-memory-local/auto-checkpoint",
         "/path/to/openclaw-memory-local/memory-qdrant",
-        "/path/to/openclaw-memory-local/plugins/nox-auto-capture"
+        "/path/to/openclaw-memory-local/plugins/nox-auto-capture",
+        "/path/to/openclaw-memory-local/plugins/nox-preference-learner",
+        "/path/to/openclaw-memory-local/plugins/nox-event-bus",
+        "/path/to/openclaw-memory-local/plugins/nox-preconscious",
+        "/path/to/openclaw-memory-local/plugins/nox-emergency"
       ]
-    },
-    "entries": {
-      "auto-checkpoint": { "enabled": true },
-      "memory-qdrant": { "enabled": true },
-      "nox-auto-capture": { "enabled": true }
     }
   }
 }
@@ -205,142 +174,52 @@ Add to your `~/.openclaw/openclaw.json`:
 openclaw gateway restart
 ```
 
-That's it. Your agent now has persistent memory.
-
-## Configuration
-
-### auto-checkpoint
-
-```json
-{
-  "auto-checkpoint": {
-    "enabled": true,
-    "workspace": "/home/user/workspace",
-    "maxInjectChars": 3000,
-    "staleThresholdMs": 7200000,
-    "tzOffset": "+01:00"
-  }
-}
-```
-
-### memory-qdrant
-
-```json
-{
-  "memory-qdrant": {
-    "enabled": true,
-    "serverName": "qdrant-memory",
-    "factsFile": "/home/user/workspace/memory/facts.jsonl",
-    "qdrantLimit": 5,
-    "knowledgeMap": {
-      "budget": "memory/knowledge/finance.md",
-      "deploy": "memory/knowledge/infrastructure.md"
-    }
-  }
-}
-```
-
-### nox-auto-capture (v2.0)
-
-```json
-{
-  "nox-auto-capture": {
-    "enabled": true,
-    "serverName": "qdrant-memory",
-    "minMessageLength": 20,
-    "maxStoreLength": 500,
-    "cooldownMs": 10000
-  }
-}
-```
-
-### nox-preference-learner (v1.0) 🆕
-
-```json
-{
-  "nox-preference-learner": {
-    "enabled": true
-  }
-}
-```
-
-**v2.0 Features:**
-- **User-only capture** — Only stores human messages, not assistant/system
-- **Content deduplication** — SHA256-based, prevents duplicates
-- **30+ skip patterns** — Ignores briefings, system events, exec outputs
-- **Content cleaning** — Strips metadata envelopes before storage
-
-## facts.jsonl Format
-
-Optional file for verified, keyword-searched facts:
-
-```jsonl
-{"date":"2026-01-15","key":"office","fact":"Main office is at 123 Innovation Drive, Building C"}
-{"date":"2026-02-01","key":"deploy","fact":"Production runs on Hetzner CX22, IP 65.21.x.x"}
-{"date":"2026-02-10","key":"rule","fact":"Never deploy on Fridays after 16:00"}
-```
-
-## Development
-
-```bash
-npm test              # 60 tests, zero external deps
-npm run test:verbose  # Detailed output
-```
-
-Tests cover: hook registration, context injection, stale detection, message classification, skip logic, cooldown, error handling, facts search, knowledge routing, and user message extraction.
-
-Each plugin includes an [agentskills.io](https://agentskills.io)-compliant `SKILL.md`. See [AGENTSKILLS-COMPLIANCE.md](AGENTSKILLS-COMPLIANCE.md) for the full report (75✅ 3⚠️ 0❌).
+That's it. Your agent now has memory, behavioral adaptation, and ambient intelligence.
 
 ## Troubleshooting
 
 ### memory_search returns empty results
 
-OpenClaw's built-in `memory_search` tool uses a **separate embedding provider** (OpenAI, Gemini, Voyage, etc.) — independent of the plugins in this repo. If `memory_search` returns empty:
+OpenClaw's built-in `memory_search` uses a **separate embedding provider** (OpenAI, Gemini, etc.) — independent of these plugins. If `memory_search` returns empty:
 
-1. **Check your embedding provider config:**
-   ```bash
-   openclaw memory status
-   ```
-   Look for `Provider`, `Indexed files`, and `Embedding cache` entries.
+1. Check provider config: `openclaw memory status`
+2. Common causes: API key expired, rate limit during reindex, provider switch without reindex
+3. Verify plugins work independently: `mcporter call qdrant-memory.qdrant-find query="test"`
 
-2. **Common causes:**
-   - API key expired or revoked → update in `~/.openclaw/.env`
-   - Provider rate limit hit during reindex → retry with `openclaw memory index --force`
-   - Provider switched but reindex not triggered → run `openclaw memory index --force`
-
-3. **Verify the plugins still work independently:**
-   ```bash
-   mcporter call qdrant-memory.qdrant-find query="test"
-   ```
-   If this returns results, your Qdrant memory is fine — only the OpenClaw-level search is affected.
-
-> **Key insight:** These plugins use mcporter → Qdrant (local embeddings via `paraphrase-multilingual-mpnet-base-v2`). OpenClaw's `memory_search` uses a cloud embedding provider. They are independent systems. One can fail without affecting the other.
+> These plugins use mcporter → Qdrant (local embeddings). OpenClaw's `memory_search` uses a cloud embedding provider. They are independent systems.
 
 ### Monitoring
-
-A health check script is included at [`scripts/memory-health.sh`](scripts/memory-health.sh). It verifies all memory subsystems in one pass:
 
 ```bash
 bash scripts/memory-health.sh
 ```
 
-Checks: Qdrant access, mcporter find/store, embedding cache freshness, sync cron, memory file integrity, and provider config. Returns exit code 0 if healthy, 1 if problems found.
-
-Consider running this in your agent's heartbeat loop to catch failures early.
+Checks 7 subsystems: Qdrant access, mcporter find/store, embedding cache, sync cron, memory files, provider config. Exit 0 = healthy. Run it in your agent's heartbeat loop.
 
 ## Privacy
 
-- **Zero cloud dependency.** Qdrant runs locally. mcporter calls local processes. Nothing leaves your machine.
-- **No telemetry.** No analytics. No tracking. No phoning home.
+- **Zero cloud dependency.** Qdrant runs locally. Nothing leaves your machine.
+- **No telemetry.** No analytics. No tracking.
 - **Your data, your disk.** Delete the Qdrant directory, delete the memories.
+
+## Development
+
+```bash
+npm test    # 106 tests, zero external deps
+```
+
+Each plugin includes an [agentskills.io](https://agentskills.io)-compliant `SKILL.md`.
 
 ## Roadmap
 
-- [x] **Preference Learner** — behavioral adaptation from conversation feedback (SHIPPED v1.0)
-- [ ] FadeMem: access-weighted decay (frequently recalled memories fade slower)
-- [ ] Co-occurrence tracking (Hebbian links between related memories)
-- [ ] Cognitive fingerprint (topology hash for agent identity)
-- [ ] Modality-tagged memories (sensor/text/social/internal — for embodied agents)
+- [x] Semantic recall via Qdrant
+- [x] Automatic fact/decision capture
+- [x] Behavioral preference learning
+- [x] Ambient Intelligence Engine (event bus, preconscious buffer, emergency surface)
+- [ ] FadeMem: access-weighted decay
+- [ ] Co-occurrence tracking (Hebbian links)
+- [ ] Cognitive fingerprint (topology hash)
+- [ ] Sensor connectors (email, calendar, file watchers)
 - [ ] ClawhHub listing
 
 ## License
@@ -349,10 +228,6 @@ MIT — use it, fork it, improve it.
 
 ---
 
-## Contributors
+**Contributors:** [Rocky Wüst](https://github.com/rockywuest) (creator), Nox ⚡ (architecture + implementation), Claude (Anthropic)
 
-- **[Rocky Wüst](https://github.com/rockywuest)** — Creator & maintainer
-- **Nox** ⚡ — AI assistant (Claude, Anthropic) — architecture, implementation, tests, docs
-- **Claude** (Anthropic) — Code generation, review, debugging
-
-*Running 24/7 in production since January 2026. Part of the [Sentinel Agent](https://rotomi.de/sentinel-agent.html) ecosystem.*
+*Running 24/7 since January 2026. Part of the [Sentinel Agent](https://rotomi.de/sentinel-agent.html) ecosystem.*
