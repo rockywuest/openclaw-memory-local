@@ -229,6 +229,43 @@ Tests cover: hook registration, context injection, stale detection, message clas
 
 Each plugin includes an [agentskills.io](https://agentskills.io)-compliant `SKILL.md`. See [AGENTSKILLS-COMPLIANCE.md](AGENTSKILLS-COMPLIANCE.md) for the full report (75✅ 3⚠️ 0❌).
 
+## Troubleshooting
+
+### memory_search returns empty results
+
+OpenClaw's built-in `memory_search` tool uses a **separate embedding provider** (OpenAI, Gemini, Voyage, etc.) — independent of the plugins in this repo. If `memory_search` returns empty:
+
+1. **Check your embedding provider config:**
+   ```bash
+   openclaw memory status
+   ```
+   Look for `Provider`, `Indexed files`, and `Embedding cache` entries.
+
+2. **Common causes:**
+   - API key expired or revoked → update in `~/.openclaw/.env`
+   - Provider rate limit hit during reindex → retry with `openclaw memory index --force`
+   - Provider switched but reindex not triggered → run `openclaw memory index --force`
+
+3. **Verify the plugins still work independently:**
+   ```bash
+   mcporter call qdrant-memory.qdrant-find query="test"
+   ```
+   If this returns results, your Qdrant memory is fine — only the OpenClaw-level search is affected.
+
+> **Key insight:** These plugins use mcporter → Qdrant (local embeddings via `paraphrase-multilingual-mpnet-base-v2`). OpenClaw's `memory_search` uses a cloud embedding provider. They are independent systems. One can fail without affecting the other.
+
+### Monitoring
+
+A health check script is included at [`scripts/memory-health.sh`](scripts/memory-health.sh). It verifies all memory subsystems in one pass:
+
+```bash
+bash scripts/memory-health.sh
+```
+
+Checks: Qdrant access, mcporter find/store, embedding cache freshness, sync cron, memory file integrity, and provider config. Returns exit code 0 if healthy, 1 if problems found.
+
+Consider running this in your agent's heartbeat loop to catch failures early.
+
 ## Privacy
 
 - **Zero cloud dependency.** Qdrant runs locally. mcporter calls local processes. Nothing leaves your machine.
