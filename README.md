@@ -6,7 +6,7 @@
 
 **Your memories stay on your machine. Your agent actually learns from you.**
 
-Four OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — plus behavioral learning from your feedback. Without sending a single byte to the cloud.
+Seven OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — plus behavioral learning from your feedback and ambient intelligence. Without sending a single byte to the cloud.
 
 > Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, access-weighted decay, compaction-safe checkpoints, and **a preference learner that adapts your agent's behavior based on how you talk to it**. Running 24/7 in production since January 2026.
 
@@ -23,6 +23,8 @@ Four OpenClaw plugins that give your agent persistent, searchable, biologically-
 
 ## Plugins
 
+### Core Memory System
+
 | Plugin | What it does | Hook |
 |--------|-------------|------|
 | **[auto-checkpoint](./auto-checkpoint/)** | Injects last operational state into every session. Warns when stale. Backs up before compaction. | `session:compact:before`, `before_agent_start` |
@@ -30,7 +32,19 @@ Four OpenClaw plugins that give your agent persistent, searchable, biologically-
 | **[auto-capture](./plugins/nox-auto-capture/)** | Listens for corrections, decisions, facts, and lessons — stores them automatically. v2.0: user-only, dedup, 30+ skip patterns. | `before_agent_start` |
 | **[preference-learner](./plugins/nox-preference-learner/)** | 🆕 **Train by Talking.** Detects approval/disapproval in conversations and adapts agent behavior across 6 dimensions. RLHF-lite without model fine-tuning. | `before_agent_start` |
 
+### Ambient Intelligence Engine (AIE) — v3.0 🆕
+
+Inspired by [Total Recall](https://github.com/gavdalf/total-recall), but **OpenClaw-native** (Node.js plugins, not shell scripts).
+
+| Plugin | What it does | Hook |
+|--------|-------------|------|
+| **[nox-event-bus](./plugins/nox-event-bus/)** | Central event bus for sensors and insights. Persists events as JSONL, auto-prunes old entries, injects recent relevant events as context. | `before_agent_start` |
+| **[nox-preconscious](./plugins/nox-preconscious/)** | Preconscious buffer — scores events by importance × recency × reinforcement, surfaces top-N insights in Markdown (max 500 tokens). | `before_agent_start` |
+| **[nox-emergency](./plugins/nox-emergency/)** | Emergency surface — escalates urgent events (importance ≥ 0.85) and expiring TTLs. Dedup via SHA256, rate-limited (2 alerts/day). | `before_agent_start` |
+
 ## Architecture
+
+### Core Memory Flow
 
 ```
 User message → OpenClaw Gateway
@@ -46,6 +60,25 @@ auto-checkpoint  memory-qdrant  auto-capture
 state/current.md
     │
     └──→ Agent gets: checkpoint + memories + facts + knowledge hints
+```
+
+### Ambient Intelligence Engine (AIE)
+
+```
+Sensors (email, calendar, file, system)
+    │
+    ▼
+nox-event-bus (JSONL persistence)
+    │
+    ├──→ nox-preconscious (scoring + buffer)
+    │        │
+    │        └──→ memory/preconscious-buffer.md (top-5 insights)
+    │
+    └──→ nox-emergency (urgent + expiring)
+             │
+             └──→ memory/emergency-alerts.jsonl
+                      │
+                      └──→ Agent gets: ⚠️ URGENT context injection
 ```
 
 **Total overhead per session start: < 500ms** (tested on ARM64 and x86).
@@ -91,6 +124,35 @@ Structured directories (people/, projects/, decisions/) require manual drill-dow
 - **4-layer compaction mitigation** (checkpoint backup → auto-checkpoint → compaction-summarizer → context re-injection)
 - **Embodied AI tested** — also used with a robot dog for sensor memory capture
 - Running continuously since January 2026 (works on everything from a Raspberry Pi to a cloud server)
+
+### AIE vs. Total Recall
+
+Total Recall pioneered ambient intelligence for agents. We build on that foundation with OpenClaw-native implementation:
+
+| Feature | Total Recall | AIE (this project) |
+|---------|-------------|-------------------|
+| Language | Shell (bash + jq + python) | JavaScript (Node.js) |
+| Event Bus | JSONL file | JSONL + in-memory listeners |
+| Preconscious Buffer | Shell script | Plugin with scoring engine |
+| Emergency Surface | Cron + shell | Plugin with rate limiting + dedup |
+| Integration | Standalone scripts | OpenClaw plugin hooks |
+| Dependencies | jq, python, PyYAML | Node.js stdlib only |
+| Extensibility | Fork scripts | Import as library + hooks |
+| Testing | Manual | 45 automated tests |
+
+**What we kept from Total Recall:**
+- Event-driven architecture
+- Importance scoring with recency decay
+- TTL-based expiry
+- Emergency escalation
+
+**What we improved:**
+- Native OpenClaw integration (no cron needed — runs on every session start)
+- Zero external dependencies (no jq, no PyYAML)
+- Testable architecture (100% coverage on core logic)
+- Event listeners (plugins can react to events in real-time)
+- Deduplication (SHA256-based, prevents duplicate alerts)
+- Token limiting (preconscious buffer auto-truncates)
 
 ## Quick Start
 
