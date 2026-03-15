@@ -1,0 +1,9 @@
+{
+  "name": "nox-emergency",
+  "version": "1.0.0",
+  "description": "Escalates urgent events and expiring TTLs (AIE emergency surface)",
+  "main": "index.js",
+  "keywords": ["openclaw", "plugin", "memory", "emergency", "alerts", "aie"],
+  "author": "Nox",
+  "license": "MIT"
+}

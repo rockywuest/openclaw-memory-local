@@ -1,0 +1,33 @@
+{
+  "id": "nox-preconscious",
+  "displayName": "Nox Preconscious Buffer",
+  "type": "memory",
+  "hooks": ["before_agent_start"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "topN": {
+        "type": "number",
+        "default": 5,
+        "minimum": 1,
+        "maximum": 20
+      },
+      "maxTokens": {
+        "type": "number",
+        "default": 500,
+        "minimum": 100,
+        "maximum": 2000
+      },
+      "halfLifeHours": {
+        "type": "number",
+        "default": 24,
+        "minimum": 1
+      }
+    }
+  }
+}

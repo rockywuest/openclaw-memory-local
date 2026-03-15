@@ -1,0 +1,28 @@
+{
+  "id": "nox-emergency",
+  "displayName": "Nox Emergency Surface",
+  "type": "memory",
+  "hooks": ["before_agent_start"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "importanceThreshold": {
+        "type": "number",
+        "default": 0.85,
+        "minimum": 0,
+        "maximum": 1
+      },
+      "maxAlertsPerDay": {
+        "type": "number",
+        "default": 2,
+        "minimum": 1,
+        "maximum": 10
+      }
+    }
+  }
+}
