@@ -5,6 +5,56 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-03-16
+
+### Added — Cognitive Layer v3.1
+
+Three new cognitive plugins + sensor connector infrastructure:
+
+**nox-fademem** — Access-weighted Memory Decay
+- Tracks memory access in `memory/fademem-access.jsonl` (memory_id, timestamp, query)
+- Calculates fade scores: `base_importance × access_frequency × recency_factor`
+- Half-life: 30 days (configurable)
+- Never-accessed memories fade, frequently accessed memories gain strength
+- Warns about top fading memories via context injection
+- Export: `getFadeScores()` for analysis
+
+**nox-cooccurrence** — Hebbian Learning
+- Tracks concept co-occurrences in `memory/cooccurrence.jsonl`
+- Format: `{concept_a, concept_b, count, last_seen, strength}`
+- Strength = count × recency_decay (half-life 20h)
+- Keyword-based concept extraction (no LLM required)
+- Injects associated concepts when one appears in context
+- Example: "Brüggen" → suggests "Stress", "SAP", "Exit"
+- Max 10 associations per concept, min strength 0.3
+
+**nox-fingerprint** — Cognitive Fingerprint
+- Analyzes memory distribution across 8 domains: work, family, tech, finance, health, social, creative, system
+- Calculates Gini coefficient (inequality measure)
+- Generates topology hash (SHA256) — changes when personality shifts
+- Drift detection: alerts when >20% distribution change
+- Cooldown: 1x daily recalculation
+- Stores fingerprint in `memory/cognitive-fingerprint.json`
+
+**Sensor Connectors** (event-bus extension)
+- `connectors/filewatch.js` — watches `memory/` for .md file changes (fs.watch + polling fallback)
+- `connectors/system.js` — monitors disk space, CPU temp, memory pressure (emits only on problems)
+- `connectors/index.js` — connector registry with graceful degradation
+- Auto-start at plugin registration, not per-session
+
+### Changed
+- **nox-event-bus**: now imports and starts sensor connectors via `ConnectorRegistry`
+- **README**: expanded plugin table (7 → 10), roadmap marked complete, architecture diagram updated
+- **Tests**: 106 → 184 tests (78 new cognitive layer tests)
+
+### Tests Added
+- `test/fademem.test.js` — 25 tests (access tracking, decay calculation, score ranking, fading warnings)
+- `test/cooccurrence.test.js` — 29 tests (concept extraction, co-occurrence counting, strength decay, association injection)
+- `test/fingerprint.test.js` — 30 tests (domain classification, distribution, gini, hash, drift detection)
+- `test/connectors.test.js` — 24 tests (filewatch, system connector, registry)
+
+All tests pass. Zero external dependencies (Node.js stdlib only).
+
 ## [3.0.0] - 2026-03-15
 
 ### Added — Ambient Intelligence Engine (AIE)

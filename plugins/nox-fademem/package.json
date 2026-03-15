@@ -1,0 +1,9 @@
+{
+  "name": "nox-fademem",
+  "version": "1.0.0",
+  "description": "Access-weighted Memory Decay for OpenClaw AIE",
+  "main": "index.js",
+  "keywords": ["openclaw", "plugin", "memory", "decay", "aie"],
+  "author": "Nox AIE",
+  "license": "MIT"
+}

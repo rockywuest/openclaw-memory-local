@@ -1,0 +1,16 @@
+{
+  "id": "nox-fademem",
+  "name": "Nox FadeMem",
+  "version": "1.0.0",
+  "description": "Access-weighted Memory Decay — memories that are never retrieved gradually fade",
+  "author": "Nox AIE",
+  "type": "aie-cognitive",
+  "entry": "./index.js",
+  "hooks": ["before_agent_start"],
+  "exports": ["getFadeScores"],
+  "config": {
+    "enabled": true,
+    "halfLifeDays": 30,
+    "maxFadingWarnings": 5
+  }
+}
