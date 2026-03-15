@@ -203,7 +203,10 @@ class EventBus {
 
 // ── Plugin Registration ──────────────────────────────────────────
 
+const ConnectorRegistry = require("./connectors/index.js");
+
 let busInstance = null;
+let connectorRegistry = null;
 
 async function beforeAgentStart(event, ctx) {
   if (!busInstance) return undefined;
@@ -229,6 +232,17 @@ function register(api) {
 
   busInstance = new EventBus(workspace, config);
 
+  // Initialize sensor connectors
+  try {
+    connectorRegistry = new ConnectorRegistry(workspace, busInstance);
+    connectorRegistry.registerBuiltins();
+    connectorRegistry.runAll();
+    logger.info("[nox-event-bus] Sensor connectors started");
+  } catch (err) {
+    logger.error(`[nox-event-bus] Connector initialization failed: ${err.message}`);
+    // Graceful degradation: continue without connectors
+  }
+
   // Register hook
   if (api.on) {
     api.on("before_agent_start", beforeAgentStart);
@@ -241,7 +255,8 @@ function register(api) {
   // Expose bus instance for other plugins
   if (api.shared) {
     api.shared.eventBus = busInstance;
-    logger.info("[nox-event-bus] Exposed as api.shared.eventBus");
+    api.shared.connectorRegistry = connectorRegistry;
+    logger.info("[nox-event-bus] Exposed as api.shared.eventBus + connectorRegistry");
   }
 
   logger.info("[nox-event-bus] Ready");
