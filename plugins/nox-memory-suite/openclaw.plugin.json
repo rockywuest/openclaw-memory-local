@@ -1,0 +1,39 @@
+{
+  "id": "nox-memory-suite",
+  "displayName": "Nox Memory Suite",
+  "description": "Meta-plugin that activates all openclaw-memory-local plugins with a single config entry. Like ESLint's 'recommended' — one line, full cognitive memory stack.",
+  "version": "1.0.0",
+  "type": "memory",
+  "hooks": ["before_agent_start"],
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enabled": {
+        "type": "boolean",
+        "default": true
+      },
+      "preset": {
+        "type": "string",
+        "enum": ["full", "core", "minimal"],
+        "default": "full",
+        "description": "full = all 8 plugins, core = capture+events+preconscious+emergency+preferences, minimal = capture+preferences only"
+      },
+      "plugins": {
+        "type": "object",
+        "description": "Override individual plugin enabled state",
+        "additionalProperties": false,
+        "properties": {
+          "auto-capture": { "type": "boolean" },
+          "event-bus": { "type": "boolean" },
+          "preconscious": { "type": "boolean" },
+          "emergency": { "type": "boolean" },
+          "preference-learner": { "type": "boolean" },
+          "fademem": { "type": "boolean" },
+          "cooccurrence": { "type": "boolean" },
+          "fingerprint": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
