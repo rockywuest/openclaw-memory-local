@@ -1,0 +1,17 @@
+{
+  "id": "nox-cooccurrence",
+  "name": "Nox Co-occurrence",
+  "version": "1.0.0",
+  "description": "Hebbian Learning — tracks concept co-occurrences for associative memory",
+  "author": "Nox AIE",
+  "type": "aie-cognitive",
+  "entry": "./index.js",
+  "hooks": ["before_agent_start"],
+  "exports": ["getAssociations", "getCooccurrenceMatrix"],
+  "config": {
+    "enabled": true,
+    "halfLifeHours": 20,
+    "maxAssociations": 10,
+    "minStrength": 0.3
+  }
+}
