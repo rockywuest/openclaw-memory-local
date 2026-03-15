@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2026-03-15
+
+### Added
+- **Troubleshooting section** in README: diagnosing empty `memory_search` results, verifying plugin independence from OpenClaw embedding provider
+- **`scripts/memory-health.sh`**: Standalone health check covering 7 subsystems (Qdrant access, mcporter find/store, embedding cache, sync cron, memory files, config). Exit 0/1 for automation.
+
 ## [2.0.0] - 2026-03-10
 
 ### Added
