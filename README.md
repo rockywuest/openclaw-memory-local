@@ -6,7 +6,7 @@
 
 **Your memories stay on your machine. Your agent actually learns from you.**
 
-Seven OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — with behavioral learning, ambient intelligence, and emergency alerting. Without sending a single byte to the cloud.
+Ten OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — with behavioral learning, ambient intelligence, cognitive adaptation, and emergency alerting. Without sending a single byte to the cloud.
 
 > Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, behavioral adaptation, ambient awareness, and emergency escalation — all local, all open source. Running 24/7 in production since January 2026.
 
@@ -29,9 +29,12 @@ Flat files scale linearly. Vector search scales logarithmically. Nobody else ada
 | **[memory-qdrant](./memory-qdrant/)** | Semantic recall — searches Qdrant + facts.jsonl + knowledge-file routing. | Recall |
 | **[auto-capture](./plugins/nox-auto-capture/)** | Detects corrections, decisions, facts, lessons — stores them automatically. | Learn |
 | **[preference-learner](./plugins/nox-preference-learner/)** | **Train by Talking.** Adapts agent behavior across 6 dimensions from your feedback. | Adapt |
-| **[event-bus](./plugins/nox-event-bus/)** | Central event bus. Sensors and insights flow through here. JSONL persistence. | Sense |
+| **[event-bus](./plugins/nox-event-bus/)** | Central event bus + sensor connectors (file, system). JSONL persistence. | Sense |
 | **[preconscious](./plugins/nox-preconscious/)** | Scores events by importance × recency. Surfaces top insights as context. | Anticipate |
 | **[emergency](./plugins/nox-emergency/)** | Escalates urgent events. Dedup, rate limiting, TTL expiry detection. | Alert |
+| **[fademem](./plugins/nox-fademem/)** | Access-weighted Memory Decay — memories that are never retrieved fade. | Cognitive |
+| **[cooccurrence](./plugins/nox-cooccurrence/)** | Hebbian Learning — tracks concept co-occurrences for associative memory. | Cognitive |
+| **[fingerprint](./plugins/nox-fingerprint/)** | Cognitive Fingerprint — personality profile based on memory topology + drift detection. | Cognitive |
 
 All plugins hook into `before_agent_start` — your agent gets the full picture before every response.
 
@@ -205,7 +208,7 @@ Checks 7 subsystems: Qdrant access, mcporter find/store, embedding cache, sync c
 ## Development
 
 ```bash
-npm test    # 106 tests, zero external deps
+npm test    # 184 tests, zero external deps
 ```
 
 Each plugin includes an [agentskills.io](https://agentskills.io)-compliant `SKILL.md`.
@@ -216,10 +219,10 @@ Each plugin includes an [agentskills.io](https://agentskills.io)-compliant `SKIL
 - [x] Automatic fact/decision capture
 - [x] Behavioral preference learning
 - [x] Ambient Intelligence Engine (event bus, preconscious buffer, emergency surface)
-- [ ] FadeMem: access-weighted decay
-- [ ] Co-occurrence tracking (Hebbian links)
-- [ ] Cognitive fingerprint (topology hash)
-- [ ] Sensor connectors (email, calendar, file watchers)
+- [x] FadeMem: access-weighted decay
+- [x] Co-occurrence tracking (Hebbian links)
+- [x] Cognitive fingerprint (topology hash)
+- [x] Sensor connectors (file watchers, system monitoring)
 - [ ] ClawhHub listing
 
 ## License
