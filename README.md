@@ -8,6 +8,8 @@
 
 Ten OpenClaw plugins that give your agent persistent, searchable, biologically-inspired memory — with behavioral learning, ambient intelligence, cognitive adaptation, and emergency alerting. Without sending a single byte to the cloud.
 
+**New: One-line install with `nox-memory-suite`.** One plugin path, one config entry, full stack. [Quick Start →](#quick-start)
+
 > Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, behavioral adaptation, ambient awareness, and emergency escalation — all local, all open source. Running 24/7 in production since January 2026.
 
 ## Why Not Just MEMORY.md?
@@ -35,6 +37,7 @@ Flat files scale linearly. Vector search scales logarithmically. Nobody else ada
 | **[fademem](./plugins/nox-fademem/)** | Access-weighted Memory Decay — memories that are never retrieved fade. | Cognitive |
 | **[cooccurrence](./plugins/nox-cooccurrence/)** | Hebbian Learning — tracks concept co-occurrences for associative memory. | Cognitive |
 | **[fingerprint](./plugins/nox-fingerprint/)** | Cognitive Fingerprint — personality profile based on memory topology + drift detection. | Cognitive |
+| **[memory-suite](./plugins/nox-memory-suite/)** | **Meta-plugin** — one config entry activates all of the above. Presets: `full`, `core`, `minimal`. | All |
 
 All plugins hook into `before_agent_start` — your agent gets the full picture before every response.
 
@@ -153,7 +156,50 @@ mcporter config add qdrant-memory stdio \
 
 ### Configure OpenClaw
 
-Add to `~/.openclaw/openclaw.json`:
+**Option A: One-line setup (recommended)**
+
+Add `nox-memory-suite` — one path, one entry, full stack:
+
+```json
+{
+  "plugins": {
+    "load": {
+      "paths": [
+        "/path/to/openclaw-memory-local/auto-checkpoint",
+        "/path/to/openclaw-memory-local/memory-qdrant",
+        "/path/to/openclaw-memory-local/plugins/nox-memory-suite"
+      ]
+    },
+    "entries": {
+      "nox-memory-suite": { "enabled": true }
+    }
+  }
+}
+```
+
+The suite auto-loads all 8 plugins in dependency order. Presets:
+
+| Preset | Plugins | Use Case |
+|--------|---------|----------|
+| `full` (default) | All 8 | Production — everything including cognitive layer |
+| `core` | capture, events, preconscious, emergency, preferences | Daily use without cognitive analysis |
+| `minimal` | capture, preferences | Lightweight — just learning and fact capture |
+
+Override individual plugins:
+
+```json
+{
+  "nox-memory-suite": {
+    "enabled": true,
+    "preset": "core",
+    "plugins": { "fademem": true }
+  }
+}
+```
+
+**Option B: Manual setup (pick and choose)**
+
+Add individual plugin paths:
 
 ```json
 {
@@ -166,12 +212,17 @@ Add to `~/.openclaw/openclaw.json`:
         "/path/to/openclaw-memory-local/plugins/nox-preference-learner",
         "/path/to/openclaw-memory-local/plugins/nox-event-bus",
         "/path/to/openclaw-memory-local/plugins/nox-preconscious",
-        "/path/to/openclaw-memory-local/plugins/nox-emergency"
+        "/path/to/openclaw-memory-local/plugins/nox-emergency",
+        "/path/to/openclaw-memory-local/plugins/nox-fademem",
+        "/path/to/openclaw-memory-local/plugins/nox-cooccurrence",
+        "/path/to/openclaw-memory-local/plugins/nox-fingerprint"
       ]
     }
   }
 }
 ```
+
+Then:
 
 ```bash
 openclaw gateway restart
@@ -223,6 +274,7 @@ Each plugin includes an [agentskills.io](https://agentskills.io)-compliant `SKIL
 - [x] Co-occurrence tracking (Hebbian links)
 - [x] Cognitive fingerprint (topology hash)
 - [x] Sensor connectors (file watchers, system monitoring)
+- [x] Meta-plugin (`nox-memory-suite`) — one-line activation with presets
 - [ ] ClawhHub listing
 
 ## License
