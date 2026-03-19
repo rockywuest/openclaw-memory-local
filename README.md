@@ -10,7 +10,7 @@ Ten OpenClaw plugins that give your agent persistent, searchable, biologically-i
 
 **New: One-line install with `nox-memory-suite`.** One plugin path, one config entry, full stack. [Quick Start →](#quick-start)
 
-> Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, behavioral adaptation, ambient awareness, and emergency escalation — all local, all open source. Running 24/7 in production since January 2026.
+> Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, behavioral adaptation, ambient awareness, and emergency escalation — all local, all open source. Core plugins (checkpoint, qdrant, auto-capture, preference-learner) running 24/7 in production since January 2026. Cognitive plugins (fademem, cooccurrence, fingerprint) are experimental — included but not yet battle-tested.
 
 ## Why Not Just MEMORY.md?
 
@@ -34,9 +34,11 @@ Flat files scale linearly. Vector search scales logarithmically. Nobody else ada
 | **[event-bus](./plugins/nox-event-bus/)** | Central event bus + sensor connectors (file, system). JSONL persistence. | Sense |
 | **[preconscious](./plugins/nox-preconscious/)** | Scores events by importance × recency. Surfaces top insights as context. | Anticipate |
 | **[emergency](./plugins/nox-emergency/)** | Escalates urgent events. Dedup, rate limiting, TTL expiry detection. | Alert |
-| **[fademem](./plugins/nox-fademem/)** | Access-weighted Memory Decay — memories that are never retrieved fade. | Cognitive |
-| **[cooccurrence](./plugins/nox-cooccurrence/)** | Hebbian Learning — tracks concept co-occurrences for associative memory. | Cognitive |
-| **[fingerprint](./plugins/nox-fingerprint/)** | Cognitive Fingerprint — personality profile based on memory topology + drift detection. | Cognitive |
+| **[fademem](./plugins/nox-fademem/)** | Access-weighted Memory Decay — memories that are never retrieved fade. | Cognitive (experimental) |
+| **[cooccurrence](./plugins/nox-cooccurrence/)** | Hebbian Learning — tracks concept co-occurrences for associative memory. | Cognitive (experimental) |
+| **[fingerprint](./plugins/nox-fingerprint/)** | Cognitive Fingerprint — personality profile based on memory topology + drift detection. | Cognitive (experimental) |
+
+> **Note (2026-03-19):** The three Cognitive plugins (fademem, cooccurrence, fingerprint) are experimental. They load and hook into the lifecycle correctly, but in production use their actual data output has been minimal. The core value comes from auto-checkpoint, memory-qdrant, auto-capture, and preference-learner. The Cognitive layer is included for experimentation and may be refined in future releases. For a simpler setup, use `nox-memory-suite` with preset `core`.
 | **[memory-suite](./plugins/nox-memory-suite/)** | **Meta-plugin** — one config entry activates all of the above. Presets: `full`, `core`, `minimal`. | All |
 
 All plugins hook into `before_agent_start` — your agent gets the full picture before every response.
