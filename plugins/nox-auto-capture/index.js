@@ -1,9 +1,15 @@
 "use strict";
 /**
- * nox-auto-capture v2.0 — OpenClaw Plugin
+ * nox-auto-capture v2.1 — OpenClaw Plugin
  *
  * Captures corrections, decisions, facts, and lessons from conversations
  * into Qdrant via mcporter.
+ *
+ * v2.1 Changes (inspired by claude-mem analysis):
+ * - Privacy tags: <private>...</private> content is stripped before capture
+ * - Observation types: stored with type classification for better retrieval
+ * - Token cost estimation: logged per capture for economics visibility
+ * - Preference detection: captures user preferences and style corrections
  *
  * v2.0 Changes:
  * - Aggressive content cleaning (metadata envelopes, system events)
@@ -94,11 +100,30 @@ const LESSON_PATTERNS = [
   /\b(wichtig|merken|remember|aufpassen|vorsicht)\b.*[:!]/i,
 ];
 
+const PREFERENCE_PATTERNS = [
+  // User preferences & style corrections (inspired by claude-mem observation types)
+  /\b(ich will|ich möchte|bitte immer|bitte nie|ab jetzt immer|ab jetzt nie)\b/i,
+  /\b(i want|i prefer|always do|never do|don't ever)\b/i,
+  /\b(format|formatier|schreib.*so|nicht so sondern)\b/i,
+  /\b(wir hatten vereinbart|wir hatten besprochen|wie besprochen)\b/i,
+  /\b(mach.*nicht mehr|hör auf mit|stop doing)\b/i,
+];
+
 // ── Content Cleaning ─────────────────────────────────────────────
+
+// ── Token Cost Estimation (inspired by claude-mem TokenCalculator) ────
+const CHARS_PER_TOKEN = 4;
+function estimateTokens(text) {
+  return Math.ceil((text || "").length / CHARS_PER_TOKEN);
+}
 
 function cleanContent(text) {
   if (!text || typeof text !== "string") return "";
   let c = text;
+
+  // Strip <private> tags — user-marked content that should never be captured
+  // Inspired by claude-mem's privacy tag system
+  c = c.replace(/<private>[\s\S]*?<\/private>/g, "[PRIVATE]");
 
   // Remove JSON metadata blocks
   c = c.replace(/Conversation info \(untrusted metadata\):\s*```json[\s\S]*?```\s*/g, "");
@@ -176,6 +201,7 @@ function classifyMessage(text) {
   for (const p of DECISION_PATTERNS) if (p.test(text)) { categories.push("decision"); break; }
   for (const p of FACT_PATTERNS) if (p.test(text)) { categories.push("fact"); break; }
   for (const p of LESSON_PATTERNS) if (p.test(text)) { categories.push("lesson"); break; }
+  for (const p of PREFERENCE_PATTERNS) if (p.test(text)) { categories.push("preference"); break; }
   return categories;
 }
 
@@ -236,7 +262,8 @@ async function beforeAgentStart(event, ctx) {
 
     if (storeInQdrant(storageText)) {
       captured++;
-      log(`Captured [${catLabel}]: ${content.slice(0, 80)}...`);
+      const tokens = estimateTokens(storageText);
+      log(`Captured [${catLabel}] (~${tokens}tok): ${content.slice(0, 80)}...`);
     }
   }
 
@@ -252,7 +279,7 @@ async function beforeAgentStart(event, ctx) {
 
 function register(api) {
   const logger = api.log || console;
-  logger.info("[nox-auto-capture] v2.0 registering (dedup + clean + user-only)...");
+  logger.info("[nox-auto-capture] v2.1 registering (dedup + clean + privacy-tags + typed-obs)...");
 
   if (api.on) {
     api.on("before_agent_start", beforeAgentStart);
@@ -261,13 +288,13 @@ function register(api) {
     api.registerHook("before_agent_start", beforeAgentStart);
     logger.info("[nox-auto-capture] Registered before_agent_start via registerHook()");
   }
-  logger.info("[nox-auto-capture] v2.0 ready");
+  logger.info("[nox-auto-capture] v2.1 ready");
 }
 
 const plugin = {
   id: "nox-auto-capture",
   name: "Nox Auto-Capture",
-  description: "Captures corrections, decisions, facts, and lessons from conversations into Qdrant (v2.0: dedup + clean)",
+  description: "Captures corrections, decisions, facts, lessons, and preferences from conversations into Qdrant (v2.1: privacy tags + typed observations + token economics)",
   configSchema: {
     type: "object",
     additionalProperties: false,
