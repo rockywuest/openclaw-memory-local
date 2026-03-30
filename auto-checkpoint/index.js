@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * auto-checkpoint — OpenClaw Plugin
  *
@@ -11,8 +11,8 @@
  * License: MIT
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
 const DEFAULT_MAX_INJECT_CHARS = 3000;
 const DEFAULT_STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
@@ -21,23 +21,17 @@ const DEFAULT_STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 hours
  * Resolve workspace directory from config or environment.
  */
 function resolveWorkspace(config) {
-  return (
-    config?.workspace ||
-    process.env.OPENCLAW_WORKSPACE ||
-    process.env.HOME + "/clawd"
-  );
+  return config?.workspace || process.env.OPENCLAW_WORKSPACE || process.env.HOME + '/clawd';
 }
 
 /**
  * Parse timestamp from first line: "# Current State — YYYY-MM-DD HH:MM"
  */
 function parseCheckpointTime(content, tzOffset) {
-  const match = content.match(
-    /Current State.*?(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})/
-  );
+  const match = content.match(/Current State.*?(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})/);
   if (!match) return null;
   try {
-    return new Date(`${match[1]}T${match[2]}:00${tzOffset || "+00:00"}`);
+    return new Date(`${match[1]}T${match[2]}:00${tzOffset || '+00:00'}`);
   } catch {
     return null;
   }
@@ -49,7 +43,7 @@ function parseCheckpointTime(content, tzOffset) {
 function readCheckpoint(filePath) {
   try {
     if (!fs.existsSync(filePath)) return null;
-    return fs.readFileSync(filePath, "utf-8");
+    return fs.readFileSync(filePath, 'utf-8');
   } catch {
     return null;
   }
@@ -60,50 +54,44 @@ function readCheckpoint(filePath) {
  */
 async function beforeAgentStart(event, ctx, config) {
   const workspace = resolveWorkspace(config);
-  const stateDir = path.join(workspace, "state");
-  const checkpointFile = config?.checkpointFile || path.join(stateDir, "current.md");
+  const stateDir = path.join(workspace, 'state');
+  const checkpointFile = config?.checkpointFile || path.join(stateDir, 'current.md');
   const maxChars = config?.maxInjectChars || DEFAULT_MAX_INJECT_CHARS;
   const staleMs = config?.staleThresholdMs || DEFAULT_STALE_THRESHOLD_MS;
-  const tzOffset = config?.tzOffset || "+00:00";
+  const tzOffset = config?.tzOffset || '+00:00';
 
   const content = readCheckpoint(checkpointFile);
   if (!content) {
     return {
       prependContext:
-        "## AUTO-CHECKPOINT\n\n" +
-        "⚠️ No checkpoint file found. Create one at " +
+        '## AUTO-CHECKPOINT\n\n' +
+        '⚠️ No checkpoint file found. Create one at ' +
         checkpointFile +
-        " with current system status, open tasks, and context.\n\n---",
+        ' with current system status, open tasks, and context.\n\n---'
     };
   }
 
   const checkpointTime = parseCheckpointTime(content, tzOffset);
   const now = new Date();
   const ageMs = checkpointTime ? now - checkpointTime : null;
-  const ageHours = ageMs ? (ageMs / (60 * 60 * 1000)).toFixed(1) : "?";
+  const ageHours = ageMs ? (ageMs / (60 * 60 * 1000)).toFixed(1) : '?';
   const isStale = ageMs ? ageMs > staleMs : true;
 
-  const truncated =
-    content.length > maxChars
-      ? "...\n" + content.slice(-maxChars)
-      : content;
+  const truncated = content.length > maxChars ? '...\n' + content.slice(-maxChars) : content;
 
-  let warning = "";
+  let warning = '';
   if (isStale) {
     warning =
-      "\n\n⚠️ CHECKPOINT STALE (" +
+      '\n\n⚠️ CHECKPOINT STALE (' +
       ageHours +
-      "h old). " +
-      "Update " + checkpointFile + " now to preserve context across compaction.";
+      'h old). ' +
+      'Update ' +
+      checkpointFile +
+      ' now to preserve context across compaction.';
   }
 
   return {
-    prependContext:
-      "## LAST CHECKPOINT" +
-      warning +
-      "\n\n" +
-      truncated +
-      "\n\n---",
+    prependContext: '## LAST CHECKPOINT' + warning + '\n\n' + truncated + '\n\n---'
   };
 }
 
@@ -112,56 +100,71 @@ async function beforeAgentStart(event, ctx, config) {
  */
 async function beforeCompaction(event, ctx, config) {
   const workspace = resolveWorkspace(config);
-  const stateDir = path.join(workspace, "state");
-  const checkpointFile = config?.checkpointFile || path.join(stateDir, "current.md");
-  const compactionLog = path.join(stateDir, "compaction-log.txt");
+  const stateDir = path.join(workspace, 'state');
+  const checkpointFile = config?.checkpointFile || path.join(stateDir, 'current.md');
+  const compactionLog = path.join(stateDir, 'compaction-log.txt');
 
   try {
     const content = readCheckpoint(checkpointFile);
     if (content) {
-      const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const backupPath = path.join(stateDir, `pre-compaction-${ts}.md`);
       fs.writeFileSync(backupPath, content);
     }
-    fs.appendFileSync(compactionLog, new Date().toISOString() + " compaction triggered\n");
+    fs.appendFileSync(compactionLog, new Date().toISOString() + ' compaction triggered\n');
   } catch (err) {
-    console.error("[auto-checkpoint] Backup error:", err.message);
+    console.error('[auto-checkpoint] Backup error:', err.message);
   }
 }
 
 function register(api) {
   const log = api.log || console;
-  log.info("[auto-checkpoint] Registering...");
+  log.info('[auto-checkpoint] Registering...');
 
   const config = api.config || {};
 
   if (api.on) {
-    api.on("before_agent_start", (e, c) => beforeAgentStart(e, c, config));
-    api.on("before_compaction", (e, c) => beforeCompaction(e, c, config));
+    api.on('before_agent_start', (e, c) => beforeAgentStart(e, c, config));
+    api.on('before_compaction', (e, c) => beforeCompaction(e, c, config));
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", (e, c) => beforeAgentStart(e, c, config));
+    api.registerHook('before_agent_start', (e, c) => beforeAgentStart(e, c, config));
   }
 
-  log.info("[auto-checkpoint] Registered successfully");
+  log.info('[auto-checkpoint] Registered successfully');
 }
 
 const plugin = {
-  id: "auto-checkpoint",
-  name: "Auto-Checkpoint",
-  description: "Injects operational state checkpoint and warns on stale state",
+  id: 'auto-checkpoint',
+  name: 'Auto-Checkpoint',
+  description: 'Injects operational state checkpoint and warns on stale state',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
     properties: {
-      enabled: { type: "boolean", default: true },
-      workspace: { type: "string", description: "Path to workspace directory" },
-      checkpointFile: { type: "string", description: "Path to checkpoint file (default: <workspace>/state/current.md)" },
-      maxInjectChars: { type: "number", default: 3000, description: "Max chars to inject from checkpoint" },
-      staleThresholdMs: { type: "number", default: 7200000, description: "Stale threshold in ms (default: 2h)" },
-      tzOffset: { type: "string", default: "+00:00", description: "Timezone offset for checkpoint parsing (e.g. +01:00)" },
-    },
+      enabled: { type: 'boolean', default: true },
+      workspace: { type: 'string', description: 'Path to workspace directory' },
+      checkpointFile: {
+        type: 'string',
+        description: 'Path to checkpoint file (default: <workspace>/state/current.md)'
+      },
+      maxInjectChars: {
+        type: 'number',
+        default: 3000,
+        description: 'Max chars to inject from checkpoint'
+      },
+      staleThresholdMs: {
+        type: 'number',
+        default: 7200000,
+        description: 'Stale threshold in ms (default: 2h)'
+      },
+      tzOffset: {
+        type: 'string',
+        default: '+00:00',
+        description: 'Timezone offset for checkpoint parsing (e.g. +01:00)'
+      }
+    }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

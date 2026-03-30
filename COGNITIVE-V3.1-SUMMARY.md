@@ -12,11 +12,13 @@
 **Access-weighted Memory Decay** — Erinnerungen die nie abgerufen werden verblassen.
 
 **Dateien:**
+
 - `openclaw.plugin.json` — Plugin-Manifest
 - `index.js` — FadeMemEngine-Klasse (8.7KB)
 - `package.json` — NPM-Metadaten
 
 **Funktionalität:**
+
 - Trackt jeden Memory-Zugriff in `memory/fademem-access.jsonl`
 - Format: `{timestamp, memory_id, query, importance}`
 - Berechnet Fade-Score: `base_importance × frequency_boost × recency_factor × (1 + access_frequency)`
@@ -26,6 +28,7 @@
 - Export: `getFadeScores()` — Map<memoryId, {score, lastAccess, accessCount}>
 
 **Tests:** 25 Tests in `test/fademem.test.js`
+
 - Access tracking, decay calculation, score ranking, frequency boost
 - Fading warnings, plugin export, edge cases
 
@@ -36,11 +39,13 @@
 **Hebbian Learning** — "Neurons that fire together, wire together."
 
 **Dateien:**
+
 - `openclaw.plugin.json` — Plugin-Manifest
 - `index.js` — CooccurrenceEngine-Klasse (10.4KB)
 - `package.json` — NPM-Metadaten
 
 **Funktionalität:**
+
 - Trackt welche Concepts zusammen in Sessions erscheinen
 - Speichert Co-occurrence-Matrix in `memory/cooccurrence.jsonl`
 - Format: `{concept_a, concept_b, count, last_seen, strength}`
@@ -52,6 +57,7 @@
 - Pruning: entfernt schwache Assoziationen automatisch
 
 **Tests:** 29 Tests in `test/cooccurrence.test.js`
+
 - Concept extraction, co-occurrence recording, strength calculation
 - Association retrieval, pruning, context injection
 
@@ -62,11 +68,13 @@
 **Memory-Topologie-basierter Persönlichkeits-Fingerabdruck.**
 
 **Dateien:**
+
 - `openclaw.plugin.json` — Plugin-Manifest
 - `index.js` — CognitiveFingerprintEngine-Klasse (10.9KB)
 - `package.json` — NPM-Metadaten
 
 **Funktionalität:**
+
 - Analysiert Event-Verteilung über 8 Domains: work, family, tech, finance, health, social, creative, system
 - Domain-Classification: Keyword-basiert (Brüggen → work, Noah → family, GitHub → tech)
 - Berechnet:
@@ -80,6 +88,7 @@
 - Injiziert kurze Zusammenfassung: "Memory Profile: 40% work, 25% tech, 15% family..."
 
 **Tests:** 30 Tests in `test/fingerprint.test.js`
+
 - Domain classification, distribution calculation, Gini coefficient
 - Topology hash, drift detection, cooldown logic
 
@@ -90,6 +99,7 @@
 **Event-Bus-Integration für File + System Monitoring.**
 
 **Dateien:**
+
 - `filewatch.js` — FileWatchConnector (4.3KB)
 - `system.js` — SystemConnector (3.8KB)
 - `index.js` — ConnectorRegistry (2.2KB)
@@ -97,6 +107,7 @@
 **Funktionalität:**
 
 **FileWatchConnector:**
+
 - Watched `memory/` Verzeichnis auf Änderungen
 - Emittiert `sensor.file` Events wenn .md Dateien erscheinen/ändern
 - Nutzt `fs.watch` (fallback: statSync-Polling bei 1 Min Intervall)
@@ -104,6 +115,7 @@
 - Ignoriert non-.md Dateien
 
 **SystemConnector:**
+
 - Monitort System-Health: Disk-Space, CPU-Temp, Memory-Pressure
 - Emittiert `sensor.system` Events NUR bei Problemen
 - Thresholds: Disk 85%, CPU 75°C, Memory 90%
@@ -111,6 +123,7 @@
 - Liest `/proc/meminfo`, `df`, `/sys/class/thermal/thermal_zone0/temp`
 
 **ConnectorRegistry:**
+
 - Zentrale Registry für alle Connectors
 - `registerConnector(name, Class)` — registriert Connector
 - `runAll()` — startet alle Connectors
@@ -118,11 +131,13 @@
 - Graceful Degradation: wenn ein Connector fehlschlägt, laufen andere weiter
 
 **Integration:**
+
 - Event-Bus Plugin importiert + startet Connectors bei `register()`
 - Connectors laufen kontinuierlich im Hintergrund
 - NICHT bei jedem `before_agent_start` (würden sonst zu viele Prozesse spawnen)
 
 **Tests:** 24 Tests in `test/connectors.test.js`
+
 - FileWatch: start/stop, .md detection, recursive scan, ignore non-.md
 - System: start/stop, checks without crash, threshold logic
 - Registry: register, runAll, graceful degradation
@@ -154,14 +169,14 @@ file changes, system health   →    Qdrant queries tracked    →    event-bus
 
 ## Statistiken
 
-| Metrik | Vorher | Nachher | Delta |
-|--------|--------|---------|-------|
-| **Plugins** | 7 | 10 | +3 |
-| **Tests** | 106 | 184 | +78 |
-| **LoC (Plugins)** | ~8.5K | ~11.9K | +3.4K |
-| **LoC (Tests)** | ~4.2K | ~7.2K | +3K |
-| **Connectors** | 0 | 2 | +2 |
-| **External Deps** | 0 | 0 | 0 |
+| Metrik            | Vorher | Nachher | Delta |
+| ----------------- | ------ | ------- | ----- |
+| **Plugins**       | 7      | 10      | +3    |
+| **Tests**         | 106    | 184     | +78   |
+| **LoC (Plugins)** | ~8.5K  | ~11.9K  | +3.4K |
+| **LoC (Tests)**   | ~4.2K  | ~7.2K   | +3K   |
+| **Connectors**    | 0      | 2       | +2    |
+| **External Deps** | 0      | 0       | 0     |
 
 ---
 

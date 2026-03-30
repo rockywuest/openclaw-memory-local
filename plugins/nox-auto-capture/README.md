@@ -18,10 +18,12 @@ Passive learning for AI agents. Automatically captures corrections, decisions, f
 
 ```json
 {
-  "plugins": [{
-    "id": "nox-auto-capture",
-    "enabled": true
-  }]
+  "plugins": [
+    {
+      "id": "nox-auto-capture",
+      "enabled": true
+    }
+  ]
 }
 ```
 
@@ -29,13 +31,13 @@ Passive learning for AI agents. Automatically captures corrections, decisions, f
 
 ## What Gets Captured
 
-| Signal | Example |
-|--------|---------|
+| Signal     | Example                                     |
+| ---------- | ------------------------------------------- |
 | Correction | "No, the meeting is Thursday not Wednesday" |
-| Decision | "Let's go with option B" |
-| New fact | "The API key expires in March" |
-| Lesson | "Last time we forgot to backup first" |
-| Preference | "Always use bullet points" |
+| Decision   | "Let's go with option B"                    |
+| New fact   | "The API key expires in March"              |
+| Lesson     | "Last time we forgot to backup first"       |
+| Preference | "Always use bullet points"                  |
 
 ## What Gets Skipped
 
@@ -48,6 +50,7 @@ Passive learning for AI agents. Automatically captures corrections, decisions, f
 ## Production Stats
 
 Battle-tested on a Raspberry Pi 5 (24/7 since Jan 2026):
+
 - 2,284 clean memories after hygiene
 - 7.1% junk rate caught by v2.0 filters
 - 0 duplicates since SHA256 dedup

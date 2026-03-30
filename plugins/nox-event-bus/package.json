@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "description": "Central event bus for Ambient Intelligence Engine (AIE)",
   "main": "index.js",
-  "keywords": ["openclaw", "plugin", "memory", "event-bus", "aie"],
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "memory",
+    "event-bus",
+    "aie"
+  ],
   "author": "Nox",
   "license": "MIT"
 }

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-event-bus — OpenClaw Plugin
  *
@@ -21,17 +21,17 @@
  * }
  */
 
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 const VALID_TOPICS = [
-  "sensor.email",
-  "sensor.calendar",
-  "sensor.file",
-  "sensor.system",
-  "agent.insight",
-  "agent.alert",
+  'sensor.email',
+  'sensor.calendar',
+  'sensor.file',
+  'sensor.system',
+  'agent.insight',
+  'agent.alert'
 ];
 
 class EventBus {
@@ -39,7 +39,7 @@ class EventBus {
     this.workspaceRoot = workspaceRoot;
     this.retentionDays = config.retentionDays || 7;
     this.maxEventsInjected = config.maxEventsInjected || 10;
-    this.eventFile = path.join(workspaceRoot, "memory", "events", "bus.jsonl");
+    this.eventFile = path.join(workspaceRoot, 'memory', 'events', 'bus.jsonl');
     this.listeners = new Map(); // topic -> Set<callback>
     this.ensureEventDir();
   }
@@ -57,21 +57,21 @@ class EventBus {
    */
   emit(topic, data) {
     if (!VALID_TOPICS.includes(topic)) {
-      throw new Error(`Invalid topic: ${topic}. Valid: ${VALID_TOPICS.join(", ")}`);
+      throw new Error(`Invalid topic: ${topic}. Valid: ${VALID_TOPICS.join(', ')}`);
     }
 
     const event = {
       timestamp: new Date().toISOString(),
       topic,
-      source: data.source || "unknown",
-      importance: typeof data.importance === "number" ? data.importance : 0.5,
+      source: data.source || 'unknown',
+      importance: typeof data.importance === 'number' ? data.importance : 0.5,
       data: data.data || data,
-      ttl_hours: data.ttl_hours || null,
+      ttl_hours: data.ttl_hours || null
     };
 
     // Persist to JSONL
     try {
-      fs.appendFileSync(this.eventFile, JSON.stringify(event) + "\n");
+      fs.appendFileSync(this.eventFile, JSON.stringify(event) + '\n');
     } catch (err) {
       console.error(`[event-bus] Failed to persist event: ${err.message}`);
     }
@@ -115,7 +115,7 @@ class EventBus {
   readEvents() {
     if (!fs.existsSync(this.eventFile)) return [];
     try {
-      const lines = fs.readFileSync(this.eventFile, "utf8").trim().split("\n");
+      const lines = fs.readFileSync(this.eventFile, 'utf8').trim().split('\n');
       return lines.filter(l => l.trim()).map(l => JSON.parse(l));
     } catch (err) {
       console.error(`[event-bus] Failed to read events: ${err.message}`);
@@ -147,7 +147,7 @@ class EventBus {
 
     if (kept.length < events.length) {
       // Rewrite file with kept events
-      const content = kept.map(e => JSON.stringify(e)).join("\n") + "\n";
+      const content = kept.map(e => JSON.stringify(e)).join('\n') + '\n';
       try {
         fs.writeFileSync(this.eventFile, content);
         console.log(`[event-bus] Pruned ${events.length - kept.length} events`);
@@ -187,23 +187,26 @@ class EventBus {
    */
   generateContextInjection() {
     const events = this.getRecentRelevantEvents(this.maxEventsInjected);
-    if (events.length === 0) return "";
+    if (events.length === 0) return '';
 
-    const lines = ["## Recent Events (Event Bus)", ""];
+    const lines = ['## Recent Events (Event Bus)', ''];
     events.forEach(e => {
-      const ts = new Date(e.timestamp).toISOString().slice(0, 19).replace("T", " ");
-      const summary = typeof e.data === "object" ? JSON.stringify(e.data).slice(0, 100) : String(e.data).slice(0, 100);
+      const ts = new Date(e.timestamp).toISOString().slice(0, 19).replace('T', ' ');
+      const summary =
+        typeof e.data === 'object'
+          ? JSON.stringify(e.data).slice(0, 100)
+          : String(e.data).slice(0, 100);
       lines.push(`- **[${ts}]** [${e.topic}] (imp: ${e.importance.toFixed(2)}) ${summary}`);
     });
-    lines.push("", "---", "");
+    lines.push('', '---', '');
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 }
 
 // ── Plugin Registration ──────────────────────────────────────────
 
-const ConnectorRegistry = require("./connectors/index.js");
+const ConnectorRegistry = require('./connectors/index.js');
 
 let busInstance = null;
 let connectorRegistry = null;
@@ -219,7 +222,7 @@ async function beforeAgentStart(event, ctx) {
   if (!injection) return undefined;
 
   return {
-    systemMessage: injection,
+    systemMessage: injection
   };
 }
 
@@ -228,7 +231,7 @@ function register(api) {
   const workspace = api.workspace || process.env.OPENCLAW_WORKSPACE || process.cwd();
   const config = api.config || {};
 
-  logger.info("[nox-event-bus] Initializing...");
+  logger.info('[nox-event-bus] Initializing...');
 
   busInstance = new EventBus(workspace, config);
 
@@ -237,7 +240,7 @@ function register(api) {
     connectorRegistry = new ConnectorRegistry(workspace, busInstance);
     connectorRegistry.registerBuiltins();
     connectorRegistry.runAll();
-    logger.info("[nox-event-bus] Sensor connectors started");
+    logger.info('[nox-event-bus] Sensor connectors started');
   } catch (err) {
     logger.error(`[nox-event-bus] Connector initialization failed: ${err.message}`);
     // Graceful degradation: continue without connectors
@@ -245,37 +248,37 @@ function register(api) {
 
   // Register hook
   if (api.on) {
-    api.on("before_agent_start", beforeAgentStart);
-    logger.info("[nox-event-bus] Registered before_agent_start via api.on()");
+    api.on('before_agent_start', beforeAgentStart);
+    logger.info('[nox-event-bus] Registered before_agent_start via api.on()');
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", beforeAgentStart);
-    logger.info("[nox-event-bus] Registered before_agent_start via registerHook()");
+    api.registerHook('before_agent_start', beforeAgentStart);
+    logger.info('[nox-event-bus] Registered before_agent_start via registerHook()');
   }
 
   // Expose bus instance for other plugins
   if (api.shared) {
     api.shared.eventBus = busInstance;
     api.shared.connectorRegistry = connectorRegistry;
-    logger.info("[nox-event-bus] Exposed as api.shared.eventBus + connectorRegistry");
+    logger.info('[nox-event-bus] Exposed as api.shared.eventBus + connectorRegistry');
   }
 
-  logger.info("[nox-event-bus] Ready");
+  logger.info('[nox-event-bus] Ready');
 }
 
 const plugin = {
-  id: "nox-event-bus",
-  name: "Nox Event Bus",
-  description: "Central event bus for Ambient Intelligence Engine (AIE)",
+  id: 'nox-event-bus',
+  name: 'Nox Event Bus',
+  description: 'Central event bus for Ambient Intelligence Engine (AIE)',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
     properties: {
-      enabled: { type: "boolean", default: true },
-      retentionDays: { type: "number", default: 7, minimum: 1 },
-      maxEventsInjected: { type: "number", default: 10, minimum: 1, maximum: 50 },
-    },
+      enabled: { type: 'boolean', default: true },
+      retentionDays: { type: 'number', default: 7, minimum: 1 },
+      maxEventsInjected: { type: 'number', default: 10, minimum: 1, maximum: 50 }
+    }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-auto-capture v2.1 — OpenClaw Plugin
  *
@@ -18,11 +18,17 @@
  * - Comprehensive skip patterns (watchdog, crons, retries, heartbeats)
  */
 
-const { execSync, execFileSync } = require("child_process");
-const fs = require("fs");
-const path = require("path");
+const { execSync, execFileSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
-const LOG_FILE = process.env.CAPTURE_LOG_FILE || path.join(process.env.OPENCLAW_WORKSPACE || process.env.HOME || ".", "memory", "auto-capture.log");
+const LOG_FILE =
+  process.env.CAPTURE_LOG_FILE ||
+  path.join(
+    process.env.OPENCLAW_WORKSPACE || process.env.HOME || '.',
+    'memory',
+    'auto-capture.log'
+  );
 const MIN_MESSAGE_LENGTH = 30;
 const MAX_STORE_LENGTH = 500;
 const COOLDOWN_MS = 15_000;
@@ -70,7 +76,7 @@ const SKIP_PATTERNS = [
   /^\[media attached:/i,
   // Boot check
   /^BOOT\.md:/i,
-  /security-critical.*Changes require human/i,
+  /security-critical.*Changes require human/i
 ];
 
 // ── Pattern Detection (what IS worth capturing) ──────────────────
@@ -79,25 +85,25 @@ const CORRECTION_PATTERNS = [
   // Multilingual correction detection (EN + DE)
   /\b(nein|falsch|stimmt nicht|nicht richtig|das ist falsch|korrektur|korrigier)/i,
   /\b(actually|wrong|incorrect|correction|that's not)\b/i,
-  /\b(ALTER|WIE OFT DENN NOCH|echt enttäuscht)/i,
+  /\b(ALTER|WIE OFT DENN NOCH|echt enttäuscht)/i
 ];
 
 const DECISION_PATTERNS = [
   /\b(wir machen|lass uns|ich entscheide|wir nehmen|machen wir|let's do)/i,
   /\b(ab jetzt|von jetzt an|neue regel|ab sofort)/i,
-  /\b(go for it|mach das|approved|freigegeben)/i,
+  /\b(go for it|mach das|approved|freigegeben)/i
 ];
 
 const FACT_PATTERNS = [
   /\b(kostet|preis|€|EUR|\$|USD)\b.*\d/i,
   /\b(termin|datum|deadline|bis zum)\b.*\d{1,2}[\./]\d{1,2}/i,
   /\b(email|telefon|adresse|kontakt)\s*[:=]/i,
-  /\b(version|release)\s+v?\d/i,
+  /\b(version|release)\s+v?\d/i
 ];
 
 const LESSON_PATTERNS = [
   /\b(fehler|mistake|bug|nie wieder|never again)\b/i,
-  /\b(wichtig|merken|remember|aufpassen|vorsicht)\b.*[:!]/i,
+  /\b(wichtig|merken|remember|aufpassen|vorsicht)\b.*[:!]/i
 ];
 
 const PREFERENCE_PATTERNS = [
@@ -106,7 +112,7 @@ const PREFERENCE_PATTERNS = [
   /\b(i want|i prefer|always do|never do|don't ever)\b/i,
   /\b(format|formatier|schreib.*so|nicht so sondern)\b/i,
   /\b(wir hatten vereinbart|wir hatten besprochen|wie besprochen)\b/i,
-  /\b(mach.*nicht mehr|hör auf mit|stop doing)\b/i,
+  /\b(mach.*nicht mehr|hör auf mit|stop doing)\b/i
 ];
 
 // ── Content Cleaning ─────────────────────────────────────────────
@@ -114,59 +120,62 @@ const PREFERENCE_PATTERNS = [
 // ── Token Cost Estimation (inspired by claude-mem TokenCalculator) ────
 const CHARS_PER_TOKEN = 4;
 function estimateTokens(text) {
-  return Math.ceil((text || "").length / CHARS_PER_TOKEN);
+  return Math.ceil((text || '').length / CHARS_PER_TOKEN);
 }
 
 function cleanContent(text) {
-  if (!text || typeof text !== "string") return "";
+  if (!text || typeof text !== 'string') return '';
   let c = text;
 
   // Strip <private> tags — user-marked content that should never be captured
   // Inspired by claude-mem's privacy tag system
-  c = c.replace(/<private>[\s\S]*?<\/private>/g, "[PRIVATE]");
+  c = c.replace(/<private>[\s\S]*?<\/private>/g, '[PRIVATE]');
 
   // Remove JSON metadata blocks
-  c = c.replace(/Conversation info \(untrusted metadata\):\s*```json[\s\S]*?```\s*/g, "");
-  c = c.replace(/Sender \(untrusted metadata\):\s*```json[\s\S]*?```\s*/g, "");
-  c = c.replace(/Replied message \(untrusted, for context\):\s*```json[\s\S]*?```\s*/g, "");
+  c = c.replace(/Conversation info \(untrusted metadata\):\s*```json[\s\S]*?```\s*/g, '');
+  c = c.replace(/Sender \(untrusted metadata\):\s*```json[\s\S]*?```\s*/g, '');
+  c = c.replace(/Replied message \(untrusted, for context\):\s*```json[\s\S]*?```\s*/g, '');
 
   // Remove inline metadata labels (without code blocks)
-  c = c.replace(/Conversation info \(untrusted metadata\):\s*\n*/g, "");
-  c = c.replace(/Sender \(untrusted metadata\):\s*\n*/g, "");
-  c = c.replace(/Replied message \(untrusted, for context\):\s*\n*/g, "");
+  c = c.replace(/Conversation info \(untrusted metadata\):\s*\n*/g, '');
+  c = c.replace(/Sender \(untrusted metadata\):\s*\n*/g, '');
+  c = c.replace(/Replied message \(untrusted, for context\):\s*\n*/g, '');
 
   // Remove external content wrappers
-  c = c.replace(/<<<EXTERNAL_UNTRUSTED_CONTENT[\s\S]*?<<<END_EXTERNAL_UNTRUSTED_CONTENT[^>]*>>>/g, "");
-  c = c.replace(/SECURITY NOTICE:[\s\S]*?Send messages to third parties\n*/g, "");
+  c = c.replace(
+    /<<<EXTERNAL_UNTRUSTED_CONTENT[\s\S]*?<<<END_EXTERNAL_UNTRUSTED_CONTENT[^>]*>>>/g,
+    ''
+  );
+  c = c.replace(/SECURITY NOTICE:[\s\S]*?Send messages to third parties\n*/g, '');
 
   // Remove checkpoint injections
-  c = c.replace(/## LETZTER CHECKPOINT[\s\S]*?\*Aktualisiert:.*?\*\n*/g, "");
-  c = c.replace(/## VERIFIED FACTS\n[\s\S]*?---/g, "");
-  c = c.replace(/## QDRANT MEMORY\n[\s\S]*?---/g, "");
+  c = c.replace(/## LETZTER CHECKPOINT[\s\S]*?\*Aktualisiert:.*?\*\n*/g, '');
+  c = c.replace(/## VERIFIED FACTS\n[\s\S]*?---/g, '');
+  c = c.replace(/## QDRANT MEMORY\n[\s\S]*?---/g, '');
 
   // Remove system lines
-  c = c.replace(/^System: \[.*?\].*$/gm, "");
-  c = c.replace(/\[media attached:[^\]]*\]\s*/g, "");
-  c = c.replace(/\[Queued messages.*?\]\s*\n*---\s*\n*Queued #\d+\s*\n*/g, "");
+  c = c.replace(/^System: \[.*?\].*$/gm, '');
+  c = c.replace(/\[media attached:[^\]]*\]\s*/g, '');
+  c = c.replace(/\[Queued messages.*?\]\s*\n*---\s*\n*Queued #\d+\s*\n*/g, '');
 
   // Clean up whitespace
-  c = c.replace(/\n{3,}/g, "\n\n").replace(/^\s+|\s+$/g, "");
+  c = c.replace(/\n{3,}/g, '\n\n').replace(/^\s+|\s+$/g, '');
 
-  return c.length >= MIN_MESSAGE_LENGTH ? c : "";
+  return c.length >= MIN_MESSAGE_LENGTH ? c : '';
 }
 
 // ── Deduplication ────────────────────────────────────────────────
 
 function isDuplicate(text) {
   // Take first ~60 chars of actual content for dedup check
-  const prefix = text.replace(/^\[\d{4}-\d{2}-\d{2}\|[^]]*\]\s*/, "").slice(0, 60);
+  const prefix = text.replace(/^\[\d{4}-\d{2}-\d{2}\|[^]]*\]\s*/, '').slice(0, 60);
   if (prefix.length < 20) return false;
 
   try {
     const result = execFileSync(
-      "mcporter",
-      ["call", "qdrant-memory.qdrant-find", `query=${prefix}`],
-      { timeout: 10_000, stdio: ["pipe", "pipe", "pipe"] }
+      'mcporter',
+      ['call', 'qdrant-memory.qdrant-find', `query=${prefix}`],
+      { timeout: 10_000, stdio: ['pipe', 'pipe', 'pipe'] }
     );
     const output = result.toString();
     // If any result contains our prefix (first 30 chars), it's a duplicate
@@ -188,7 +197,7 @@ function ensureLogDir() {
 ensureLogDir();
 
 function log(msg) {
-  const ts = new Date().toISOString().slice(0, 19).replace("T", " ");
+  const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
   try {
     fs.appendFileSync(LOG_FILE, `[${ts}] ${msg}\n`);
   } catch {}
@@ -197,11 +206,31 @@ function log(msg) {
 
 function classifyMessage(text) {
   const categories = [];
-  for (const p of CORRECTION_PATTERNS) if (p.test(text)) { categories.push("correction"); break; }
-  for (const p of DECISION_PATTERNS) if (p.test(text)) { categories.push("decision"); break; }
-  for (const p of FACT_PATTERNS) if (p.test(text)) { categories.push("fact"); break; }
-  for (const p of LESSON_PATTERNS) if (p.test(text)) { categories.push("lesson"); break; }
-  for (const p of PREFERENCE_PATTERNS) if (p.test(text)) { categories.push("preference"); break; }
+  for (const p of CORRECTION_PATTERNS)
+    if (p.test(text)) {
+      categories.push('correction');
+      break;
+    }
+  for (const p of DECISION_PATTERNS)
+    if (p.test(text)) {
+      categories.push('decision');
+      break;
+    }
+  for (const p of FACT_PATTERNS)
+    if (p.test(text)) {
+      categories.push('fact');
+      break;
+    }
+  for (const p of LESSON_PATTERNS)
+    if (p.test(text)) {
+      categories.push('lesson');
+      break;
+    }
+  for (const p of PREFERENCE_PATTERNS)
+    if (p.test(text)) {
+      categories.push('preference');
+      break;
+    }
   return categories;
 }
 
@@ -211,16 +240,15 @@ function shouldSkip(text) {
 }
 
 function storeInQdrant(text) {
-  const truncated = text.length > MAX_STORE_LENGTH ? text.slice(0, MAX_STORE_LENGTH) + "..." : text;
+  const truncated = text.length > MAX_STORE_LENGTH ? text.slice(0, MAX_STORE_LENGTH) + '...' : text;
   try {
-    execFileSync(
-      "mcporter",
-      ["call", "qdrant-memory.qdrant-store", `information=${truncated}`],
-      { timeout: 15_000, stdio: ["pipe", "pipe", "pipe"] }
-    );
+    execFileSync('mcporter', ['call', 'qdrant-memory.qdrant-store', `information=${truncated}`], {
+      timeout: 15_000,
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
     return true;
   } catch (err) {
-    log(`Store failed: ${(err.message || "").slice(0, 100)}`);
+    log(`Store failed: ${(err.message || '').slice(0, 100)}`);
     return false;
   }
 }
@@ -237,12 +265,10 @@ async function beforeAgentStart(event, ctx) {
   let captured = 0;
 
   // Only look at recent USER messages (not assistant/system)
-  const recentUserMsgs = messages
-    .slice(-6)
-    .filter(m => m?.role === "user");
+  const recentUserMsgs = messages.slice(-6).filter(m => m?.role === 'user');
 
   for (const msg of recentUserMsgs) {
-    const rawContent = typeof msg?.content === "string" ? msg.content : "";
+    const rawContent = typeof msg?.content === 'string' ? msg.content : '';
     const content = cleanContent(rawContent);
 
     if (shouldSkip(content)) continue;
@@ -251,7 +277,7 @@ async function beforeAgentStart(event, ctx) {
     if (categories.length === 0) continue;
 
     const dateStr = new Date().toISOString().slice(0, 10);
-    const catLabel = categories.join("+");
+    const catLabel = categories.join('+');
     const storageText = `[${dateStr}|${catLabel}|user] ${content}`;
 
     // Dedup check
@@ -279,28 +305,29 @@ async function beforeAgentStart(event, ctx) {
 
 function register(api) {
   const logger = api.log || console;
-  logger.info("[nox-auto-capture] v2.1 registering (dedup + clean + privacy-tags + typed-obs)...");
+  logger.info('[nox-auto-capture] v2.1 registering (dedup + clean + privacy-tags + typed-obs)...');
 
   if (api.on) {
-    api.on("before_agent_start", beforeAgentStart);
-    logger.info("[nox-auto-capture] Registered before_agent_start via api.on()");
+    api.on('before_agent_start', beforeAgentStart);
+    logger.info('[nox-auto-capture] Registered before_agent_start via api.on()');
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", beforeAgentStart);
-    logger.info("[nox-auto-capture] Registered before_agent_start via registerHook()");
+    api.registerHook('before_agent_start', beforeAgentStart);
+    logger.info('[nox-auto-capture] Registered before_agent_start via registerHook()');
   }
-  logger.info("[nox-auto-capture] v2.1 ready");
+  logger.info('[nox-auto-capture] v2.1 ready');
 }
 
 const plugin = {
-  id: "nox-auto-capture",
-  name: "Nox Auto-Capture",
-  description: "Captures corrections, decisions, facts, lessons, and preferences from conversations into Qdrant (v2.1: privacy tags + typed observations + token economics)",
+  id: 'nox-auto-capture',
+  name: 'Nox Auto-Capture',
+  description:
+    'Captures corrections, decisions, facts, lessons, and preferences from conversations into Qdrant (v2.1: privacy tags + typed observations + token economics)',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
-    properties: { enabled: { type: "boolean", default: true } },
+    properties: { enabled: { type: 'boolean', default: true } }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

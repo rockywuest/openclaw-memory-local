@@ -14,32 +14,32 @@ Ten OpenClaw plugins that give your agent persistent, searchable, biologically-i
 
 ## Why Not Just MEMORY.md?
 
-| Approach | Token Cost | Recall | Learns Facts? | Adapts Behavior? | Watches for You? |
-|----------|-----------|--------|---------------|-----------------|-----------------|
-| Flat MEMORY.md | 5-10K every session | ❌ Degrades | ❌ | ❌ | ❌ |
-| Hierarchical files | ~1.5K + drill-downs | 🟡 Manual | ❌ | ❌ | ❌ |
-| Cloud memory (Mem0, Zep) | ~2K | ✅ | ✅ | ❌ | ❌ |
-| **This project** | ~2K + semantic hits | ✅ Vector search | ✅ Auto-capture | ✅ Preference Learner | ✅ Ambient Intelligence |
+| Approach                 | Token Cost          | Recall           | Learns Facts?   | Adapts Behavior?      | Watches for You?        |
+| ------------------------ | ------------------- | ---------------- | --------------- | --------------------- | ----------------------- |
+| Flat MEMORY.md           | 5-10K every session | ❌ Degrades      | ❌              | ❌                    | ❌                      |
+| Hierarchical files       | ~1.5K + drill-downs | 🟡 Manual        | ❌              | ❌                    | ❌                      |
+| Cloud memory (Mem0, Zep) | ~2K                 | ✅               | ✅              | ❌                    | ❌                      |
+| **This project**         | ~2K + semantic hits | ✅ Vector search | ✅ Auto-capture | ✅ Preference Learner | ✅ Ambient Intelligence |
 
-Flat files scale linearly. Vector search scales logarithmically. Nobody else adapts agent *behavior* from conversation feedback — they only store facts. And nobody else watches for urgent events and surfaces them proactively.
+Flat files scale linearly. Vector search scales logarithmically. Nobody else adapts agent _behavior_ from conversation feedback — they only store facts. And nobody else watches for urgent events and surfaces them proactively.
 
 ## Plugins
 
-| Plugin | What it does | Layer |
-|--------|-------------|-------|
-| **[auto-checkpoint](./auto-checkpoint/)** | Injects last operational state. Warns when stale. Backs up before compaction. | Remember |
-| **[memory-qdrant](./memory-qdrant/)** | Semantic recall — searches Qdrant + facts.jsonl + knowledge-file routing. | Recall |
-| **[auto-capture](./plugins/nox-auto-capture/)** | Detects corrections, decisions, facts, lessons — stores them automatically. | Learn |
-| **[preference-learner](./plugins/nox-preference-learner/)** | **Train by Talking.** Adapts agent behavior across 6 dimensions from your feedback. | Adapt |
-| **[event-bus](./plugins/nox-event-bus/)** | Central event bus + sensor connectors (file, system). JSONL persistence. | Sense |
-| **[preconscious](./plugins/nox-preconscious/)** | Scores events by importance × recency. Surfaces top insights as context. | Anticipate |
-| **[emergency](./plugins/nox-emergency/)** | Escalates urgent events. Dedup, rate limiting, TTL expiry detection. | Alert |
-| **[fademem](./plugins/nox-fademem/)** | Access-weighted Memory Decay — memories that are never retrieved fade. | Cognitive (experimental) |
-| **[cooccurrence](./plugins/nox-cooccurrence/)** | Hebbian Learning — tracks concept co-occurrences for associative memory. | Cognitive (experimental) |
-| **[fingerprint](./plugins/nox-fingerprint/)** | Cognitive Fingerprint — personality profile based on memory topology + drift detection. | Cognitive (experimental) |
+| Plugin                                                      | What it does                                                                            | Layer                    |
+| ----------------------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
+| **[auto-checkpoint](./auto-checkpoint/)**                   | Injects last operational state. Warns when stale. Backs up before compaction.           | Remember                 |
+| **[memory-qdrant](./memory-qdrant/)**                       | Semantic recall — searches Qdrant + facts.jsonl + knowledge-file routing.               | Recall                   |
+| **[auto-capture](./plugins/nox-auto-capture/)**             | Detects corrections, decisions, facts, lessons — stores them automatically.             | Learn                    |
+| **[preference-learner](./plugins/nox-preference-learner/)** | **Train by Talking.** Adapts agent behavior across 6 dimensions from your feedback.     | Adapt                    |
+| **[event-bus](./plugins/nox-event-bus/)**                   | Central event bus + sensor connectors (file, system). JSONL persistence.                | Sense                    |
+| **[preconscious](./plugins/nox-preconscious/)**             | Scores events by importance × recency. Surfaces top insights as context.                | Anticipate               |
+| **[emergency](./plugins/nox-emergency/)**                   | Escalates urgent events. Dedup, rate limiting, TTL expiry detection.                    | Alert                    |
+| **[fademem](./plugins/nox-fademem/)**                       | Access-weighted Memory Decay — memories that are never retrieved fade.                  | Cognitive (experimental) |
+| **[cooccurrence](./plugins/nox-cooccurrence/)**             | Hebbian Learning — tracks concept co-occurrences for associative memory.                | Cognitive (experimental) |
+| **[fingerprint](./plugins/nox-fingerprint/)**               | Cognitive Fingerprint — personality profile based on memory topology + drift detection. | Cognitive (experimental) |
 
 > **Note (2026-03-19):** The three Cognitive plugins (fademem, cooccurrence, fingerprint) are experimental. They load and hook into the lifecycle correctly, but in production use their actual data output has been minimal. The core value comes from auto-checkpoint, memory-qdrant, auto-capture, and preference-learner. The Cognitive layer is included for experimentation and may be refined in future releases. For a simpler setup, use `nox-memory-suite` with preset `core`.
-| **[memory-suite](./plugins/nox-memory-suite/)** | **Meta-plugin** — one config entry activates all of the above. Presets: `full`, `core`, `minimal`. | All |
+> | **[memory-suite](./plugins/nox-memory-suite/)** | **Meta-plugin** — one config entry activates all of the above. Presets: `full`, `core`, `minimal`. | All |
 
 All plugins hook into `before_agent_start` — your agent gets the full picture before every response.
 
@@ -86,7 +86,7 @@ All plugins hook into `before_agent_start` — your agent gets the full picture 
 
 **auto-capture** runs silently, detecting when conversations contain corrections, decisions, new facts, or lessons. Stores them in Qdrant automatically. User-only capture, SHA256 deduplication, 30+ skip patterns, metadata cleaning.
 
-**preference-learner** detects feedback signals in your conversations — praise, frustration, corrections — and maps them to 6 behavioral dimensions. Over time, your agent adapts *how* it works with you:
+**preference-learner** detects feedback signals in your conversations — praise, frustration, corrections — and maps them to 6 behavioral dimensions. Over time, your agent adapts _how_ it works with you:
 
 ```
 You: "Dude, stop asking for permission every time — just do it!"
@@ -110,25 +110,29 @@ Six dimensions: **autonomy**, **verbosity**, **proactivity**, **formality**, **t
 ## What Makes This Different
 
 ### vs. Flat MEMORY.md
+
 MEMORY.md grows until you summarize, losing detail. This project stores everything in Qdrant, recalls only what's relevant, and keeps MEMORY.md as a lightweight index.
 
 ### vs. Cloud Memory (Mem0, Zep)
+
 Cloud services send your data elsewhere and none adapt agent behavior. This runs on your machine, learns how you work, AND watches for problems proactively.
 
 ### vs. [Total Recall](https://github.com/gavdalf/total-recall)
+
 Total Recall pioneered ambient intelligence for agents. We build on that foundation:
 
-| | Total Recall | This project |
-|---|---|---|
-| Runtime | Shell (bash + jq + python) | Node.js (OpenClaw plugins) |
-| Scheduling | Cron jobs | Runs on every session start |
-| Dependencies | jq, python, PyYAML | Node.js stdlib only |
-| Testing | Manual | 106 automated tests |
-| Integration | Standalone scripts | Native OpenClaw hooks |
-| Emergency | Webhook/Telegram | Context injection + dedup |
-| Extensibility | Fork scripts | Import + event listeners |
+|               | Total Recall               | This project                |
+| ------------- | -------------------------- | --------------------------- |
+| Runtime       | Shell (bash + jq + python) | Node.js (OpenClaw plugins)  |
+| Scheduling    | Cron jobs                  | Runs on every session start |
+| Dependencies  | jq, python, PyYAML         | Node.js stdlib only         |
+| Testing       | Manual                     | 106 automated tests         |
+| Integration   | Standalone scripts         | Native OpenClaw hooks       |
+| Emergency     | Webhook/Telegram           | Context injection + dedup   |
+| Extensibility | Fork scripts               | Import + event listeners    |
 
 ### Production-Proven
+
 - **2,000+ memories** stored and recalled daily
 - **4-layer compaction mitigation** (checkpoint backup → auto-checkpoint → compaction-summarizer → context re-injection)
 - **Embodied AI tested** — also used with a robot dog for sensor memory
@@ -181,11 +185,11 @@ Add `nox-memory-suite` — one path, one entry, full stack:
 
 The suite auto-loads all 8 plugins in dependency order. Presets:
 
-| Preset | Plugins | Use Case |
-|--------|---------|----------|
-| `full` (default) | All 8 | Production — everything including cognitive layer |
-| `core` | capture, events, preconscious, emergency, preferences | Daily use without cognitive analysis |
-| `minimal` | capture, preferences | Lightweight — just learning and fact capture |
+| Preset           | Plugins                                               | Use Case                                          |
+| ---------------- | ----------------------------------------------------- | ------------------------------------------------- |
+| `full` (default) | All 8                                                 | Production — everything including cognitive layer |
+| `core`           | capture, events, preconscious, emergency, preferences | Daily use without cognitive analysis              |
+| `minimal`        | capture, preferences                                  | Lightweight — just learning and fact capture      |
 
 Override individual plugins:
 
@@ -287,4 +291,4 @@ MIT — use it, fork it, improve it.
 
 **Contributors:** [Rocky Wüst](https://github.com/rockywuest) (creator), Nox ⚡ (architecture + implementation), Claude (Anthropic)
 
-*Running 24/7 since January 2026. Part of the [Sentinel Agent](https://rotomi.de/sentinel-agent.html) ecosystem.*
+_Running 24/7 since January 2026. Part of the [Sentinel Agent](https://rotomi.de/sentinel-agent.html) ecosystem._

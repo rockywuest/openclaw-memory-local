@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * filewatch.js — File Sensor Connector
  *
@@ -6,14 +6,14 @@
  * Emits sensor.file events when .md files are created or modified.
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
 class FileWatchConnector {
   constructor(workspaceRoot, eventBus) {
     this.workspaceRoot = workspaceRoot;
     this.eventBus = eventBus;
-    this.watchDir = path.join(workspaceRoot, "memory");
+    this.watchDir = path.join(workspaceRoot, 'memory');
     this.watcher = null;
     this.fileStates = new Map(); // path -> lastModified
   }
@@ -30,7 +30,7 @@ class FileWatchConnector {
     try {
       // Try fs.watch first (more efficient)
       this.watcher = fs.watch(this.watchDir, { recursive: true }, (eventType, filename) => {
-        if (filename && filename.endsWith(".md")) {
+        if (filename && filename.endsWith('.md')) {
           this.handleFileChange(filename);
         }
       });
@@ -62,24 +62,24 @@ class FileWatchConnector {
   scanDirectory(dir) {
     try {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        
+
         if (entry.isDirectory()) {
           this.scanDirectory(fullPath);
-        } else if (entry.isFile() && entry.name.endsWith(".md")) {
+        } else if (entry.isFile() && entry.name.endsWith('.md')) {
           const stats = fs.statSync(fullPath);
           const lastModified = stats.mtimeMs;
           const relativePath = path.relative(this.workspaceRoot, fullPath);
 
           if (!this.fileStates.has(relativePath)) {
             // New file
-            this.emitFileEvent(relativePath, "created", lastModified);
+            this.emitFileEvent(relativePath, 'created', lastModified);
             this.fileStates.set(relativePath, lastModified);
           } else if (this.fileStates.get(relativePath) < lastModified) {
             // Modified file
-            this.emitFileEvent(relativePath, "modified", lastModified);
+            this.emitFileEvent(relativePath, 'modified', lastModified);
             this.fileStates.set(relativePath, lastModified);
           }
         }
@@ -94,7 +94,7 @@ class FileWatchConnector {
    */
   handleFileChange(filename) {
     const fullPath = path.join(this.watchDir, filename);
-    
+
     if (!fs.existsSync(fullPath)) return; // File deleted or moved
 
     try {
@@ -103,9 +103,9 @@ class FileWatchConnector {
       const relativePath = path.relative(this.workspaceRoot, fullPath);
 
       if (!this.fileStates.has(relativePath)) {
-        this.emitFileEvent(relativePath, "created", lastModified);
+        this.emitFileEvent(relativePath, 'created', lastModified);
       } else if (this.fileStates.get(relativePath) < lastModified) {
-        this.emitFileEvent(relativePath, "modified", lastModified);
+        this.emitFileEvent(relativePath, 'modified', lastModified);
       }
 
       this.fileStates.set(relativePath, lastModified);
@@ -120,17 +120,17 @@ class FileWatchConnector {
   emitFileEvent(filePath, changeType, lastModified) {
     if (!this.eventBus) return;
 
-    const importance = filePath.includes("events/") ? 0.6 : 0.5;
+    const importance = filePath.includes('events/') ? 0.6 : 0.5;
 
-    this.eventBus.emit("sensor.file", {
-      source: "filewatch",
+    this.eventBus.emit('sensor.file', {
+      source: 'filewatch',
       importance,
       data: {
         file: filePath,
         change: changeType,
-        timestamp: new Date(lastModified).toISOString(),
+        timestamp: new Date(lastModified).toISOString()
       },
-      ttl_hours: 24, // File events expire after 24h
+      ttl_hours: 24 // File events expire after 24h
     });
 
     console.log(`[filewatch] ${changeType}: ${filePath}`);
@@ -148,7 +148,7 @@ class FileWatchConnector {
       clearInterval(this.pollingTimer);
       this.pollingTimer = null;
     }
-    console.log("[filewatch] Stopped");
+    console.log('[filewatch] Stopped');
   }
 }
 

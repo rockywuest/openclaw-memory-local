@@ -5,7 +5,9 @@
   "main": "src/index.js",
   "type": "commonjs",
   "openclaw": {
-    "extensions": ["./src/index.js"]
+    "extensions": [
+      "./src/index.js"
+    ]
   },
   "license": "MIT"
 }

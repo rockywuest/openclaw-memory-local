@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-fingerprint — OpenClaw Plugin
  *
@@ -15,28 +15,19 @@
  * Cooldown: 1x daily recalculation.
  */
 
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
-const DOMAINS = [
-  "work",
-  "family",
-  "tech",
-  "finance",
-  "health",
-  "social",
-  "creative",
-  "system",
-];
+const DOMAINS = ['work', 'family', 'tech', 'finance', 'health', 'social', 'creative', 'system'];
 
 class CognitiveFingerprintEngine {
   constructor(workspaceRoot, config = {}) {
     this.workspaceRoot = workspaceRoot;
     this.driftThreshold = config.driftThreshold || 0.2;
     this.cooldownHours = config.cooldownHours || 24;
-    this.fingerprintFile = path.join(workspaceRoot, "memory", "cognitive-fingerprint.json");
-    this.eventFile = path.join(workspaceRoot, "memory", "events", "bus.jsonl");
+    this.fingerprintFile = path.join(workspaceRoot, 'memory', 'cognitive-fingerprint.json');
+    this.eventFile = path.join(workspaceRoot, 'memory', 'events', 'bus.jsonl');
     this.ensureFingerprintFile();
   }
 
@@ -53,7 +44,7 @@ class CognitiveFingerprintEngine {
   readEvents() {
     if (!fs.existsSync(this.eventFile)) return [];
     try {
-      const lines = fs.readFileSync(this.eventFile, "utf8").trim().split("\n");
+      const lines = fs.readFileSync(this.eventFile, 'utf8').trim().split('\n');
       return lines.filter(l => l.trim()).map(l => JSON.parse(l));
     } catch (err) {
       console.error(`[fingerprint] Failed to read events: ${err.message}`);
@@ -70,14 +61,14 @@ class CognitiveFingerprintEngine {
 
     // Domain keywords
     const keywords = {
-      work: ["brüggen", "sap", "horizon", "meeting", "project", "office", "work"],
-      family: ["bea", "noah", "klara", "eliah", "family", "home", "wife", "child"],
-      tech: ["github", "api", "code", "plugin", "python", "node", "git", "ai"],
-      finance: ["invoice", "payment", "tax", "steuerberater", "beleg", "rechnung"],
-      health: ["doctor", "health", "sick", "medicine", "fitness"],
-      social: ["friend", "party", "event", "social", "meet"],
-      creative: ["podcast", "creative", "design", "art", "music"],
-      system: ["cpu", "disk", "memory", "backup", "system", "error"],
+      work: ['brüggen', 'sap', 'horizon', 'meeting', 'project', 'office', 'work'],
+      family: ['bea', 'noah', 'klara', 'eliah', 'family', 'home', 'wife', 'child'],
+      tech: ['github', 'api', 'code', 'plugin', 'python', 'node', 'git', 'ai'],
+      finance: ['invoice', 'payment', 'tax', 'steuerberater', 'beleg', 'rechnung'],
+      health: ['doctor', 'health', 'sick', 'medicine', 'fitness'],
+      social: ['friend', 'party', 'event', 'social', 'meet'],
+      creative: ['podcast', 'creative', 'design', 'art', 'music'],
+      system: ['cpu', 'disk', 'memory', 'backup', 'system', 'error']
     };
 
     // Score each domain
@@ -87,10 +78,9 @@ class CognitiveFingerprintEngine {
     }
 
     // Return domain with highest score, or "system" as default
-    const topDomain = Object.entries(scores)
-      .sort((a, b) => b[1] - a[1])[0];
+    const topDomain = Object.entries(scores).sort((a, b) => b[1] - a[1])[0];
 
-    return topDomain && topDomain[1] > 0 ? topDomain[0] : "system";
+    return topDomain && topDomain[1] > 0 ? topDomain[0] : 'system';
   }
 
   /**
@@ -126,7 +116,7 @@ class CognitiveFingerprintEngine {
   calculateGini(distribution) {
     const values = Object.values(distribution).sort((a, b) => a - b);
     const n = values.length;
-    
+
     if (n === 0) return 0;
 
     let sum = 0;
@@ -135,7 +125,7 @@ class CognitiveFingerprintEngine {
     }
 
     const mean = values.reduce((a, b) => a + b, 0) / n;
-    
+
     if (mean === 0) return 0;
 
     return (2 * sum) / (n * n * mean) - (n + 1) / n;
@@ -159,9 +149,9 @@ class CognitiveFingerprintEngine {
     const normalized = Object.entries(distribution)
       .sort((a, b) => a[0].localeCompare(b[0])) // Sort by domain name
       .map(([domain, pct]) => `${domain}:${pct.toFixed(2)}`)
-      .join("|");
+      .join('|');
 
-    return crypto.createHash("sha256").update(normalized).digest("hex");
+    return crypto.createHash('sha256').update(normalized).digest('hex');
   }
 
   /**
@@ -178,7 +168,7 @@ class CognitiveFingerprintEngine {
       distribution,
       gini,
       top_domains: top3,
-      topology_hash: hash,
+      topology_hash: hash
     };
   }
 
@@ -188,7 +178,7 @@ class CognitiveFingerprintEngine {
   loadFingerprint() {
     if (!fs.existsSync(this.fingerprintFile)) return null;
     try {
-      return JSON.parse(fs.readFileSync(this.fingerprintFile, "utf8"));
+      return JSON.parse(fs.readFileSync(this.fingerprintFile, 'utf8'));
     } catch (err) {
       console.error(`[fingerprint] Failed to load fingerprint: ${err.message}`);
       return null;
@@ -263,7 +253,7 @@ class CognitiveFingerprintEngine {
       updated: true,
       drift,
       driftDetected,
-      fingerprint: newFp,
+      fingerprint: newFp
     };
   }
 
@@ -272,24 +262,22 @@ class CognitiveFingerprintEngine {
    */
   generateContextInjection() {
     const fp = this.loadFingerprint();
-    if (!fp) return "";
+    if (!fp) return '';
 
-    const lines = ["## 🧬 Cognitive Fingerprint (Memory Topology)", ""];
+    const lines = ['## 🧬 Cognitive Fingerprint (Memory Topology)', ''];
 
     // Top 3 domains
-    const top3Str = fp.top_domains
-      .map(d => `${d.domain} ${(d.pct * 100).toFixed(1)}%`)
-      .join(", ");
+    const top3Str = fp.top_domains.map(d => `${d.domain} ${(d.pct * 100).toFixed(1)}%`).join(', ');
 
     lines.push(`**Profile:** ${top3Str}`);
-    lines.push(`**Gini:** ${fp.gini.toFixed(3)} (${fp.gini < 0.5 ? "balanced" : "specialized"})`);
+    lines.push(`**Gini:** ${fp.gini.toFixed(3)} (${fp.gini < 0.5 ? 'balanced' : 'specialized'})`);
     lines.push(`**Hash:** ${fp.topology_hash.slice(0, 12)}...`);
-    lines.push("");
+    lines.push('');
 
     lines.push("*This fingerprint reflects your memory's topological structure.*");
-    lines.push("", "---", "");
+    lines.push('', '---', '');
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 
   /**
@@ -306,7 +294,7 @@ class CognitiveFingerprintEngine {
     const result = this.updateFingerprint();
     return {
       drift: result.drift || 0,
-      detected: result.driftDetected || false,
+      detected: result.driftDetected || false
     };
   }
 }
@@ -330,7 +318,7 @@ async function beforeAgentStart(event, ctx) {
   if (!injection) return undefined;
 
   return {
-    systemMessage: injection,
+    systemMessage: injection
   };
 }
 
@@ -339,49 +327,49 @@ function register(api) {
   const workspace = api.workspace || process.env.OPENCLAW_WORKSPACE || process.cwd();
   const config = api.config || {};
 
-  logger.info("[nox-fingerprint] Initializing...");
+  logger.info('[nox-fingerprint] Initializing...');
 
   fingerprintInstance = new CognitiveFingerprintEngine(workspace, config);
 
   // Register hook
   if (api.on) {
-    api.on("before_agent_start", beforeAgentStart);
-    logger.info("[nox-fingerprint] Registered before_agent_start via api.on()");
+    api.on('before_agent_start', beforeAgentStart);
+    logger.info('[nox-fingerprint] Registered before_agent_start via api.on()');
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", beforeAgentStart);
-    logger.info("[nox-fingerprint] Registered before_agent_start via registerHook()");
+    api.registerHook('before_agent_start', beforeAgentStart);
+    logger.info('[nox-fingerprint] Registered before_agent_start via registerHook()');
   }
 
   // Expose for other plugins
   if (api.shared) {
     api.shared.cognitiveFingerprint = fingerprintInstance;
-    logger.info("[nox-fingerprint] Exposed as api.shared.cognitiveFingerprint");
+    logger.info('[nox-fingerprint] Exposed as api.shared.cognitiveFingerprint');
   }
 
   // Export functions
   if (api.export) {
-    api.export("getFingerprint", () => fingerprintInstance.getFingerprint());
-    api.export("checkDrift", () => fingerprintInstance.checkDrift());
-    logger.info("[nox-fingerprint] Exported getFingerprint(), checkDrift()");
+    api.export('getFingerprint', () => fingerprintInstance.getFingerprint());
+    api.export('checkDrift', () => fingerprintInstance.checkDrift());
+    logger.info('[nox-fingerprint] Exported getFingerprint(), checkDrift()');
   }
 
-  logger.info("[nox-fingerprint] Ready");
+  logger.info('[nox-fingerprint] Ready');
 }
 
 const plugin = {
-  id: "nox-fingerprint",
-  name: "Nox Cognitive Fingerprint",
-  description: "Memory topology-based personality fingerprint with drift detection",
+  id: 'nox-fingerprint',
+  name: 'Nox Cognitive Fingerprint',
+  description: 'Memory topology-based personality fingerprint with drift detection',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
     properties: {
-      enabled: { type: "boolean", default: true },
-      driftThreshold: { type: "number", default: 0.2, minimum: 0, maximum: 1 },
-      cooldownHours: { type: "number", default: 24, minimum: 1 },
-    },
+      enabled: { type: 'boolean', default: true },
+      driftThreshold: { type: 'number', default: 0.2, minimum: 0, maximum: 1 },
+      cooldownHours: { type: 'number', default: 24, minimum: 1 }
+    }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

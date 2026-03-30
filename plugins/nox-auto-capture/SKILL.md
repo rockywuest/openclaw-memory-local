@@ -10,7 +10,7 @@ license: MIT
 compatibility: OpenClaw 2026.1.30+, Node.js >= 20, Qdrant (local), mcporter CLI
 metadata:
   author: rotomi
-  version: "2.0.0"
+  version: '2.0.0'
   platform: openclaw-plugin
 ---
 
@@ -39,6 +39,7 @@ In your `openclaw.json` plugins section:
 ```
 
 Currently uses sensible defaults. Future versions will expose:
+
 - Custom skip patterns
 - Capture sensitivity threshold
 - Storage collection name
@@ -46,13 +47,13 @@ Currently uses sensible defaults. Future versions will expose:
 
 ## What Gets Captured
 
-| Signal | Example | Stored As |
-|--------|---------|-----------|
+| Signal     | Example                                     | Stored As       |
+| ---------- | ------------------------------------------- | --------------- |
 | Correction | "No, the meeting is Thursday not Wednesday" | Fact correction |
-| Decision | "Let's go with option B" | Decision record |
-| New fact | "The API key expires in March" | Factual memory |
-| Lesson | "Last time we forgot to backup first" | Lesson learned |
-| Preference | "Always use bullet points for summaries" | User preference |
+| Decision   | "Let's go with option B"                    | Decision record |
+| New fact   | "The API key expires in March"              | Factual memory  |
+| Lesson     | "Last time we forgot to backup first"       | Lesson learned  |
+| Preference | "Always use bullet points for summaries"    | User preference |
 
 ## What Gets Skipped
 
@@ -89,6 +90,7 @@ Store in Qdrant (via mcporter) with metadata:
 ## Production Stats
 
 Battle-tested on a Raspberry Pi 5 running 24/7:
+
 - **2,284 clean memories** after hygiene (started at 2,488)
 - **7.1% junk rate** caught and removed by v2.0 filters
 - **0 duplicates** since SHA256 dedup was added

@@ -10,7 +10,7 @@ license: MIT
 compatibility: OpenClaw 2026.1.30+, Node.js >= 20
 metadata:
   author: rotomi
-  version: "2.0.0"
+  version: '2.0.0'
   platform: openclaw-plugin
 ---
 
@@ -43,20 +43,20 @@ In your `openclaw.json` plugins section:
 }
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `workspace` | cwd | Path to your workspace root |
-| `checkpointFile` | `state/current.md` | Checkpoint file relative to workspace |
-| `maxInjectChars` | 3000 | Max characters to inject (truncates from end) |
-| `staleThresholdMs` | 7200000 | Staleness warning threshold (2h) |
-| `tzOffset` | `+00:00` | Timezone offset for timestamps |
+| Option             | Default            | Description                                   |
+| ------------------ | ------------------ | --------------------------------------------- |
+| `workspace`        | cwd                | Path to your workspace root                   |
+| `checkpointFile`   | `state/current.md` | Checkpoint file relative to workspace         |
+| `maxInjectChars`   | 3000               | Max characters to inject (truncates from end) |
+| `staleThresholdMs` | 7200000            | Staleness warning threshold (2h)              |
+| `tzOffset`         | `+00:00`           | Timezone offset for timestamps                |
 
 ## Hooks
 
-| Hook | When | What |
-|------|------|------|
-| `before_agent_start` | Every session | Reads checkpoint, injects as context, warns if stale |
-| `before_compaction` | Before context compaction | Creates timestamped backup of checkpoint |
+| Hook                 | When                      | What                                                 |
+| -------------------- | ------------------------- | ---------------------------------------------------- |
+| `before_agent_start` | Every session             | Reads checkpoint, injects as context, warns if stale |
+| `before_compaction`  | Before context compaction | Creates timestamped backup of checkpoint             |
 
 ## How It Works
 

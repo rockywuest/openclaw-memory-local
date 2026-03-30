@@ -15,14 +15,16 @@ Session continuity for AI agents. Injects your last operational state into every
 
 ```json
 {
-  "plugins": [{
-    "id": "auto-checkpoint",
-    "enabled": true,
-    "config": {
-      "workspace": "/path/to/workspace",
-      "checkpointFile": "state/current.md"
+  "plugins": [
+    {
+      "id": "auto-checkpoint",
+      "enabled": true,
+      "config": {
+        "workspace": "/path/to/workspace",
+        "checkpointFile": "state/current.md"
+      }
     }
-  }]
+  ]
 }
 ```
 
@@ -32,13 +34,13 @@ Session continuity for AI agents. Injects your last operational state into every
 
 ## Configuration
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `workspace` | cwd | Workspace root path |
-| `checkpointFile` | `state/current.md` | Checkpoint file path |
-| `maxInjectChars` | 3000 | Max injection size |
-| `staleThresholdMs` | 7200000 | Staleness threshold (2h) |
-| `tzOffset` | `+00:00` | Timezone offset |
+| Option             | Default            | Description              |
+| ------------------ | ------------------ | ------------------------ |
+| `workspace`        | cwd                | Workspace root path      |
+| `checkpointFile`   | `state/current.md` | Checkpoint file path     |
+| `maxInjectChars`   | 3000               | Max injection size       |
+| `staleThresholdMs` | 7200000            | Staleness threshold (2h) |
+| `tzOffset`         | `+00:00`           | Timezone offset          |
 
 ## License
 

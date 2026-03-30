@@ -34,6 +34,7 @@ npm test  # 60 tests, zero external deps
 ## Reporting Issues
 
 Open an issue with:
+
 - What you expected
 - What happened
 - Your environment (OS, Node version, OpenClaw version)

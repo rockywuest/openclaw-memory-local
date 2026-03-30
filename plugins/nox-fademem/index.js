@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-fademem — OpenClaw Plugin
  *
@@ -17,15 +17,15 @@
  * - Export: getFadeScores() for analysis
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
 class FadeMemEngine {
   constructor(workspaceRoot, config = {}) {
     this.workspaceRoot = workspaceRoot;
     this.halfLifeDays = config.halfLifeDays || 30;
     this.maxFadingWarnings = config.maxFadingWarnings || 5;
-    this.accessLog = path.join(workspaceRoot, "memory", "fademem-access.jsonl");
+    this.accessLog = path.join(workspaceRoot, 'memory', 'fademem-access.jsonl');
     this.ensureAccessLog();
   }
 
@@ -35,7 +35,7 @@ class FadeMemEngine {
       fs.mkdirSync(dir, { recursive: true });
     }
     if (!fs.existsSync(this.accessLog)) {
-      fs.writeFileSync(this.accessLog, "");
+      fs.writeFileSync(this.accessLog, '');
     }
   }
 
@@ -50,11 +50,11 @@ class FadeMemEngine {
       timestamp: new Date().toISOString(),
       memory_id: memoryId,
       query,
-      importance,
+      importance
     };
 
     try {
-      fs.appendFileSync(this.accessLog, JSON.stringify(entry) + "\n");
+      fs.appendFileSync(this.accessLog, JSON.stringify(entry) + '\n');
     } catch (err) {
       console.error(`[fademem] Failed to track access: ${err.message}`);
     }
@@ -66,7 +66,7 @@ class FadeMemEngine {
   readAccessLog() {
     if (!fs.existsSync(this.accessLog)) return [];
     try {
-      const lines = fs.readFileSync(this.accessLog, "utf8").trim().split("\n");
+      const lines = fs.readFileSync(this.accessLog, 'utf8').trim().split('\n');
       return lines.filter(l => l.trim()).map(l => JSON.parse(l));
     } catch (err) {
       console.error(`[fademem] Failed to read access log: ${err.message}`);
@@ -77,13 +77,13 @@ class FadeMemEngine {
   /**
    * Calculate fade score for a memory.
    * Score = base_importance × access_frequency × recency_factor
-   * 
+   *
    * Recency factor uses exponential decay with configurable half-life.
    * Access frequency = number of times accessed / total accesses (normalized).
    */
   calculateFadeScore(memoryId, baseImportance = 0.5) {
     const accesses = this.readAccessLog().filter(a => a.memory_id === memoryId);
-    
+
     if (accesses.length === 0) {
       // Never accessed → pure decay from creation
       return baseImportance * this.getRecencyFactor(null);
@@ -105,9 +105,8 @@ class FadeMemEngine {
 
     // Boost for frequent access (logarithmic to prevent runaway)
     // Only apply boost for multiple accesses (>1)
-    const frequencyBoost = accesses.length > 1 
-      ? 1 + Math.log10(1 + (accesses.length - 1) * 9)
-      : 1.0;
+    const frequencyBoost =
+      accesses.length > 1 ? 1 + Math.log10(1 + (accesses.length - 1) * 9) : 1.0;
 
     const score = baseImportance * frequencyBoost * recencyFactor * (1 + accessFrequency);
 
@@ -122,7 +121,7 @@ class FadeMemEngine {
     const now = Date.now();
     const age_ms = lastAccessTime ? now - lastAccessTime : now;
     const age_days = age_ms / (24 * 60 * 60 * 1000);
-    
+
     // Exponential decay: 0.5^(age_days / half_life)
     return Math.pow(0.5, age_days / this.halfLifeDays);
   }
@@ -140,7 +139,7 @@ class FadeMemEngine {
       if (!memoryMap.has(access.memory_id)) {
         memoryMap.set(access.memory_id, {
           importance: access.importance,
-          accesses: [],
+          accesses: []
         });
       }
       memoryMap.get(access.memory_id).accesses.push(access);
@@ -159,7 +158,7 @@ class FadeMemEngine {
       scores.set(memoryId, {
         score,
         lastAccess: lastAccess.timestamp,
-        accessCount: data.accesses.length,
+        accessCount: data.accesses.length
       });
     }
 
@@ -183,27 +182,35 @@ class FadeMemEngine {
    */
   generateContextInjection() {
     const fading = this.getFadingMemories(this.maxFadingWarnings);
-    if (fading.length === 0) return "";
+    if (fading.length === 0) return '';
 
-    const lines = ["## ⚠️ Fading Memories (Access-Weighted Decay)", ""];
-    lines.push("These memories are losing strength due to lack of access:", "");
+    const lines = ['## ⚠️ Fading Memories (Access-Weighted Decay)', ''];
+    lines.push('These memories are losing strength due to lack of access:', '');
 
     for (const mem of fading) {
       const lastAccess = new Date(mem.lastAccess).toISOString().slice(0, 10);
       const scorePercent = (mem.score * 100).toFixed(1);
-      lines.push(`- **Memory ${mem.id.slice(0, 8)}** — Score: ${scorePercent}% | Last: ${lastAccess} | Accesses: ${mem.accessCount}`);
+      lines.push(
+        `- **Memory ${mem.id.slice(0, 8)}** — Score: ${scorePercent}% | Last: ${lastAccess} | Accesses: ${mem.accessCount}`
+      );
     }
 
-    lines.push("", "*Consider reviewing these memories to prevent loss of important context.*", "", "---", "");
+    lines.push(
+      '',
+      '*Consider reviewing these memories to prevent loss of important context.*',
+      '',
+      '---',
+      ''
+    );
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 
   /**
    * Simulate Qdrant query tracking.
    * In production, this would hook into actual Qdrant search results.
    */
-  trackQdrantQuery(queryResults = [], query = "") {
+  trackQdrantQuery(queryResults = [], query = '') {
     for (const result of queryResults) {
       if (result.id && result.score) {
         this.trackAccess(result.id, query, result.score);
@@ -224,7 +231,7 @@ async function beforeAgentStart(event, ctx) {
   if (!injection) return undefined;
 
   return {
-    systemMessage: injection,
+    systemMessage: injection
   };
 }
 
@@ -233,48 +240,48 @@ function register(api) {
   const workspace = api.workspace || process.env.OPENCLAW_WORKSPACE || process.cwd();
   const config = api.config || {};
 
-  logger.info("[nox-fademem] Initializing...");
+  logger.info('[nox-fademem] Initializing...');
 
   fadeMemInstance = new FadeMemEngine(workspace, config);
 
   // Register hook
   if (api.on) {
-    api.on("before_agent_start", beforeAgentStart);
-    logger.info("[nox-fademem] Registered before_agent_start via api.on()");
+    api.on('before_agent_start', beforeAgentStart);
+    logger.info('[nox-fademem] Registered before_agent_start via api.on()');
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", beforeAgentStart);
-    logger.info("[nox-fademem] Registered before_agent_start via registerHook()");
+    api.registerHook('before_agent_start', beforeAgentStart);
+    logger.info('[nox-fademem] Registered before_agent_start via registerHook()');
   }
 
   // Expose for other plugins
   if (api.shared) {
     api.shared.fadeMemEngine = fadeMemInstance;
-    logger.info("[nox-fademem] Exposed as api.shared.fadeMemEngine");
+    logger.info('[nox-fademem] Exposed as api.shared.fadeMemEngine');
   }
 
   // Export getFadeScores function
   if (api.export) {
-    api.export("getFadeScores", () => fadeMemInstance.getFadeScores());
-    logger.info("[nox-fademem] Exported getFadeScores()");
+    api.export('getFadeScores', () => fadeMemInstance.getFadeScores());
+    logger.info('[nox-fademem] Exported getFadeScores()');
   }
 
-  logger.info("[nox-fademem] Ready");
+  logger.info('[nox-fademem] Ready');
 }
 
 const plugin = {
-  id: "nox-fademem",
-  name: "Nox FadeMem",
-  description: "Access-weighted Memory Decay — memories that are never retrieved fade",
+  id: 'nox-fademem',
+  name: 'Nox FadeMem',
+  description: 'Access-weighted Memory Decay — memories that are never retrieved fade',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
     properties: {
-      enabled: { type: "boolean", default: true },
-      halfLifeDays: { type: "number", default: 30, minimum: 1 },
-      maxFadingWarnings: { type: "number", default: 5, minimum: 1, maximum: 20 },
-    },
+      enabled: { type: 'boolean', default: true },
+      halfLifeDays: { type: 'number', default: 30, minimum: 1 },
+      maxFadingWarnings: { type: 'number', default: 5, minimum: 1, maximum: 20 }
+    }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

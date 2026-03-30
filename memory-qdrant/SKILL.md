@@ -10,7 +10,7 @@ license: MIT
 compatibility: OpenClaw 2026.1.30+, Node.js >= 20, Qdrant (local), mcporter CLI
 metadata:
   author: rotomi
-  version: "2.0.0"
+  version: '2.0.0'
   platform: openclaw-plugin
 ---
 
@@ -46,12 +46,12 @@ In your `openclaw.json` plugins section:
 }
 ```
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `serverName` | `qdrant-memory` | mcporter server name for Qdrant |
-| `factsFile` | — | Path to facts.jsonl (one JSON object per line) |
-| `qdrantLimit` | 5 | Max number of semantic search results |
-| `knowledgeMap` | `{}` | Keyword → knowledge file mapping |
+| Option         | Default         | Description                                    |
+| -------------- | --------------- | ---------------------------------------------- |
+| `serverName`   | `qdrant-memory` | mcporter server name for Qdrant                |
+| `factsFile`    | —               | Path to facts.jsonl (one JSON object per line) |
+| `qdrantLimit`  | 5               | Max number of semantic search results          |
+| `knowledgeMap` | `{}`            | Keyword → knowledge file mapping               |
 
 ## Architecture
 

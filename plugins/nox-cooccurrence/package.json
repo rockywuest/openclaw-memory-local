@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "description": "Hebbian Learning co-occurrence tracking for OpenClaw AIE",
   "main": "index.js",
-  "keywords": ["openclaw", "plugin", "cooccurrence", "hebbian", "aie"],
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "cooccurrence",
+    "hebbian",
+    "aie"
+  ],
   "author": "Nox AIE",
   "license": "MIT"
 }

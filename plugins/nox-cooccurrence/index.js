@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-cooccurrence — OpenClaw Plugin
  *
@@ -15,8 +15,8 @@
  * {concept_a, concept_b, count, last_seen, strength}
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 
 class CooccurrenceEngine {
   constructor(workspaceRoot, config = {}) {
@@ -24,7 +24,7 @@ class CooccurrenceEngine {
     this.halfLifeHours = config.halfLifeHours || 20;
     this.maxAssociations = config.maxAssociations || 10;
     this.minStrength = config.minStrength || 0.3;
-    this.matrixFile = path.join(workspaceRoot, "memory", "cooccurrence.jsonl");
+    this.matrixFile = path.join(workspaceRoot, 'memory', 'cooccurrence.jsonl');
     this.knownConcepts = this.loadKnownConcepts();
     this.ensureMatrixFile();
   }
@@ -35,7 +35,7 @@ class CooccurrenceEngine {
       fs.mkdirSync(dir, { recursive: true });
     }
     if (!fs.existsSync(this.matrixFile)) {
-      fs.writeFileSync(this.matrixFile, "");
+      fs.writeFileSync(this.matrixFile, '');
     }
   }
 
@@ -46,22 +46,56 @@ class CooccurrenceEngine {
   loadKnownConcepts() {
     return new Set([
       // People
-      "Rocky", "Brüggen", "Joachim", "Bea", "Noah", "Klara", "Eliah",
-      "Mareike", "Melina", "Alexander",
-      
+      'Rocky',
+      'Brüggen',
+      'Joachim',
+      'Bea',
+      'Noah',
+      'Klara',
+      'Eliah',
+      'Mareike',
+      'Melina',
+      'Alexander',
+
       // Companies / Projects
-      "SAP", "Horizon", "F&W", "FRECH & WUEST", "eGbR",
-      
+      'SAP',
+      'Horizon',
+      'F&W',
+      'FRECH & WUEST',
+      'eGbR',
+
       // Topics
-      "Exit", "Workshop", "AI", "Recruiting", "Stress", "Family",
-      "Podcast", "Hamburg", "Lübeck", "PiDog", "OpenClaw",
-      
+      'Exit',
+      'Workshop',
+      'AI',
+      'Recruiting',
+      'Stress',
+      'Family',
+      'Podcast',
+      'Hamburg',
+      'Lübeck',
+      'PiDog',
+      'OpenClaw',
+
       // Tech
-      "GitHub", "Qdrant", "Node.js", "Python", "JavaScript",
-      "API", "Plugin", "Memory", "Agent",
-      
+      'GitHub',
+      'Qdrant',
+      'Node.js',
+      'Python',
+      'JavaScript',
+      'API',
+      'Plugin',
+      'Memory',
+      'Agent',
+
       // Domains
-      "work", "tech", "finance", "health", "social", "creative", "system",
+      'work',
+      'tech',
+      'finance',
+      'health',
+      'social',
+      'creative',
+      'system'
     ]);
   }
 
@@ -71,13 +105,13 @@ class CooccurrenceEngine {
    */
   extractConcepts(text) {
     if (!text) return new Set();
-    
+
     const found = new Set();
     const normalized = text.toLowerCase();
 
     for (const concept of this.knownConcepts) {
       // Case-insensitive match with word boundaries
-      const regex = new RegExp(`\\b${concept.toLowerCase()}\\b`, "i");
+      const regex = new RegExp(`\\b${concept.toLowerCase()}\\b`, 'i');
       if (regex.test(normalized)) {
         found.add(concept);
       }
@@ -92,7 +126,7 @@ class CooccurrenceEngine {
   readMatrix() {
     if (!fs.existsSync(this.matrixFile)) return [];
     try {
-      const lines = fs.readFileSync(this.matrixFile, "utf8").trim().split("\n");
+      const lines = fs.readFileSync(this.matrixFile, 'utf8').trim().split('\n');
       return lines.filter(l => l.trim()).map(l => JSON.parse(l));
     } catch (err) {
       console.error(`[cooccurrence] Failed to read matrix: ${err.message}`);
@@ -105,7 +139,7 @@ class CooccurrenceEngine {
    */
   writeMatrix(matrix) {
     try {
-      const content = matrix.map(m => JSON.stringify(m)).join("\n") + "\n";
+      const content = matrix.map(m => JSON.stringify(m)).join('\n') + '\n';
       fs.writeFileSync(this.matrixFile, content);
     } catch (err) {
       console.error(`[cooccurrence] Failed to write matrix: ${err.message}`);
@@ -116,7 +150,7 @@ class CooccurrenceEngine {
    * Get pair key (sorted for consistency).
    */
   getPairKey(conceptA, conceptB) {
-    return [conceptA, conceptB].sort().join("::");
+    return [conceptA, conceptB].sort().join('::');
   }
 
   /**
@@ -155,7 +189,7 @@ class CooccurrenceEngine {
             concept_b: conceptB,
             count: 1,
             last_seen: now,
-            strength: this.calculateStrength(1, now),
+            strength: this.calculateStrength(1, now)
           });
         }
       }
@@ -203,7 +237,7 @@ class CooccurrenceEngine {
           concept: matchedConcept,
           strength: entry.strength,
           count: entry.count,
-          last_seen: entry.last_seen,
+          last_seen: entry.last_seen
         });
       }
     }
@@ -219,9 +253,9 @@ class CooccurrenceEngine {
    */
   generateContextInjection(contextText) {
     const concepts = this.extractConcepts(contextText);
-    if (concepts.size === 0) return "";
+    if (concepts.size === 0) return '';
 
-    const lines = ["## 🧠 Associative Memory (Co-occurrence)", ""];
+    const lines = ['## 🧠 Associative Memory (Co-occurrence)', ''];
     let hasAssociations = false;
 
     for (const concept of concepts) {
@@ -231,16 +265,16 @@ class CooccurrenceEngine {
         const assocList = associations
           .slice(0, 5) // Top 5
           .map(a => `${a.concept} (${a.strength.toFixed(2)})`)
-          .join(", ");
+          .join(', ');
         lines.push(`- **${concept}** → ${assocList}`);
       }
     }
 
-    if (!hasAssociations) return "";
+    if (!hasAssociations) return '';
 
-    lines.push("", "*These concepts frequently appear together in your memory.*", "", "---", "");
+    lines.push('', '*These concepts frequently appear together in your memory.*', '', '---', '');
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 
   /**
@@ -278,7 +312,7 @@ async function beforeAgentStart(event, ctx) {
   cooccurrenceInstance.pruneWeakAssociations();
 
   // Extract concepts from user message (if available)
-  const userMessage = event?.userMessage || ctx?.userMessage || "";
+  const userMessage = event?.userMessage || ctx?.userMessage || '';
   if (userMessage) {
     const concepts = cooccurrenceInstance.extractConcepts(userMessage);
     if (concepts.size > 0) {
@@ -287,16 +321,13 @@ async function beforeAgentStart(event, ctx) {
   }
 
   // Generate association injection
-  const fullContext = [
-    event?.systemMessage || "",
-    userMessage,
-  ].join(" ");
+  const fullContext = [event?.systemMessage || '', userMessage].join(' ');
 
   const injection = cooccurrenceInstance.generateContextInjection(fullContext);
   if (!injection) return undefined;
 
   return {
-    systemMessage: injection,
+    systemMessage: injection
   };
 }
 
@@ -305,50 +336,50 @@ function register(api) {
   const workspace = api.workspace || process.env.OPENCLAW_WORKSPACE || process.cwd();
   const config = api.config || {};
 
-  logger.info("[nox-cooccurrence] Initializing...");
+  logger.info('[nox-cooccurrence] Initializing...');
 
   cooccurrenceInstance = new CooccurrenceEngine(workspace, config);
 
   // Register hook
   if (api.on) {
-    api.on("before_agent_start", beforeAgentStart);
-    logger.info("[nox-cooccurrence] Registered before_agent_start via api.on()");
+    api.on('before_agent_start', beforeAgentStart);
+    logger.info('[nox-cooccurrence] Registered before_agent_start via api.on()');
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", beforeAgentStart);
-    logger.info("[nox-cooccurrence] Registered before_agent_start via registerHook()");
+    api.registerHook('before_agent_start', beforeAgentStart);
+    logger.info('[nox-cooccurrence] Registered before_agent_start via registerHook()');
   }
 
   // Expose for other plugins
   if (api.shared) {
     api.shared.cooccurrenceEngine = cooccurrenceInstance;
-    logger.info("[nox-cooccurrence] Exposed as api.shared.cooccurrenceEngine");
+    logger.info('[nox-cooccurrence] Exposed as api.shared.cooccurrenceEngine');
   }
 
   // Export functions
   if (api.export) {
-    api.export("getAssociations", (concept) => cooccurrenceInstance.getAssociations(concept));
-    api.export("getCooccurrenceMatrix", () => cooccurrenceInstance.getCooccurrenceMatrix());
-    logger.info("[nox-cooccurrence] Exported getAssociations(), getCooccurrenceMatrix()");
+    api.export('getAssociations', concept => cooccurrenceInstance.getAssociations(concept));
+    api.export('getCooccurrenceMatrix', () => cooccurrenceInstance.getCooccurrenceMatrix());
+    logger.info('[nox-cooccurrence] Exported getAssociations(), getCooccurrenceMatrix()');
   }
 
-  logger.info("[nox-cooccurrence] Ready");
+  logger.info('[nox-cooccurrence] Ready');
 }
 
 const plugin = {
-  id: "nox-cooccurrence",
-  name: "Nox Co-occurrence",
-  description: "Hebbian Learning — tracks concept co-occurrences for associative memory",
+  id: 'nox-cooccurrence',
+  name: 'Nox Co-occurrence',
+  description: 'Hebbian Learning — tracks concept co-occurrences for associative memory',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
     properties: {
-      enabled: { type: "boolean", default: true },
-      halfLifeHours: { type: "number", default: 20, minimum: 1 },
-      maxAssociations: { type: "number", default: 10, minimum: 1, maximum: 50 },
-      minStrength: { type: "number", default: 0.3, minimum: 0, maximum: 1 },
-    },
+      enabled: { type: 'boolean', default: true },
+      halfLifeHours: { type: 'number', default: 20, minimum: 1 },
+      maxAssociations: { type: 'number', default: 10, minimum: 1, maximum: 50 },
+      minStrength: { type: 'number', default: 0.3, minimum: 0, maximum: 1 }
+    }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

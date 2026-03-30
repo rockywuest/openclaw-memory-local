@@ -1,30 +1,30 @@
-"use strict";
+'use strict';
 /**
  * Tests for nox-emergency plugin.
  * Uses node:test + node:assert (zero deps).
  */
 
-const { describe, it, beforeEach, afterEach } = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+const { describe, it, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
-const { EmergencySurface } = require("../plugins/nox-emergency/index.js");
+const { EmergencySurface } = require('../plugins/nox-emergency/index.js');
 
-describe("nox-emergency", () => {
+describe('nox-emergency', () => {
   let tmpDir;
   let emergency;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "oc-emergency-test-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'oc-emergency-test-'));
     emergency = new EmergencySurface(tmpDir, {
       importanceThreshold: 0.85,
-      maxAlertsPerDay: 2,
+      maxAlertsPerDay: 2
     });
 
     // Create events directory
-    const eventsDir = path.join(tmpDir, "memory", "events");
+    const eventsDir = path.join(tmpDir, 'memory', 'events');
     fs.mkdirSync(eventsDir, { recursive: true });
   });
 
@@ -35,17 +35,17 @@ describe("nox-emergency", () => {
   });
 
   function writeEvent(event) {
-    fs.appendFileSync(emergency.eventFile, JSON.stringify(event) + "\n");
+    fs.appendFileSync(emergency.eventFile, JSON.stringify(event) + '\n');
   }
 
-  describe("readEvents", () => {
-    it("reads events from JSONL", () => {
+  describe('readEvents', () => {
+    it('reads events from JSONL', () => {
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.9,
-        data: "urgent",
+        data: 'urgent'
       });
 
       const events = emergency.readEvents();
@@ -54,47 +54,47 @@ describe("nox-emergency", () => {
     });
   });
 
-  describe("processEvents", () => {
-    it("generates alerts for high-importance events", () => {
+  describe('processEvents', () => {
+    it('generates alerts for high-importance events', () => {
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.9,
-        data: "urgent matter",
+        data: 'urgent matter'
       });
 
       const alerts = emergency.processEvents();
       assert.equal(alerts.length, 1);
-      assert.equal(alerts[0].topic, "agent.alert");
+      assert.equal(alerts[0].topic, 'agent.alert');
       assert.equal(alerts[0].importance, 0.9);
-      assert.ok(alerts[0].summary.includes("urgent matter"));
+      assert.ok(alerts[0].summary.includes('urgent matter'));
     });
 
-    it("ignores low-importance events", () => {
+    it('ignores low-importance events', () => {
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "sensor.system",
-        source: "test",
+        topic: 'sensor.system',
+        source: 'test',
         importance: 0.5,
-        data: "normal event",
+        data: 'normal event'
       });
 
       const alerts = emergency.processEvents();
       assert.equal(alerts.length, 0);
     });
 
-    it("generates alerts for expiring TTL events", () => {
+    it('generates alerts for expiring TTL events', () => {
       const now = Date.now();
       const oneHourAgo = new Date(now - 60 * 60 * 1000).toISOString();
 
       writeEvent({
         timestamp: oneHourAgo,
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.7, // Below threshold but has expiring TTL
-        data: "expiring soon",
-        ttl_hours: 2, // Expires in 1 hour
+        data: 'expiring soon',
+        ttl_hours: 2 // Expires in 1 hour
       });
 
       const alerts = emergency.processEvents();
@@ -102,15 +102,15 @@ describe("nox-emergency", () => {
       assert.ok(alerts[0].expires);
     });
 
-    it("respects daily alert limit", () => {
+    it('respects daily alert limit', () => {
       // Add 3 urgent events
       for (let i = 0; i < 3; i++) {
         writeEvent({
           timestamp: new Date().toISOString(),
-          topic: "agent.alert",
-          source: "test",
+          topic: 'agent.alert',
+          source: 'test',
           importance: 0.95,
-          data: `urgent-${i}`,
+          data: `urgent-${i}`
         });
       }
 
@@ -119,14 +119,14 @@ describe("nox-emergency", () => {
     });
   });
 
-  describe("deduplication", () => {
-    it("does not create duplicate alerts", () => {
+  describe('deduplication', () => {
+    it('does not create duplicate alerts', () => {
       const event = {
         timestamp: new Date().toISOString(),
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.9,
-        data: "duplicate test",
+        data: 'duplicate test'
       };
 
       writeEvent(event);
@@ -137,21 +137,21 @@ describe("nox-emergency", () => {
       assert.equal(alerts2.length, 0); // Already alerted
     });
 
-    it("uses SHA256 hash for dedup", () => {
+    it('uses SHA256 hash for dedup', () => {
       const event1 = {
         timestamp: new Date().toISOString(),
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.9,
-        data: { msg: "test" },
+        data: { msg: 'test' }
       };
 
       const event2 = {
         timestamp: new Date(Date.now() + 1000).toISOString(), // Different timestamp
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.9,
-        data: { msg: "test" }, // Same data
+        data: { msg: 'test' } // Same data
       };
 
       writeEvent(event1);
@@ -164,101 +164,116 @@ describe("nox-emergency", () => {
     });
   });
 
-  describe("countAlertsToday", () => {
-    it("counts alerts created today", () => {
+  describe('countAlertsToday', () => {
+    it('counts alerts created today', () => {
       const today = new Date().toISOString();
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
       // Write alerts directly
-      fs.appendFileSync(emergency.alertFile, JSON.stringify({
-        timestamp: today,
-        hash: "hash1",
-        topic: "agent.alert",
-        importance: 0.9,
-        summary: "today",
-        handled: false,
-      }) + "\n");
+      fs.appendFileSync(
+        emergency.alertFile,
+        JSON.stringify({
+          timestamp: today,
+          hash: 'hash1',
+          topic: 'agent.alert',
+          importance: 0.9,
+          summary: 'today',
+          handled: false
+        }) + '\n'
+      );
 
-      fs.appendFileSync(emergency.alertFile, JSON.stringify({
-        timestamp: yesterday,
-        hash: "hash2",
-        topic: "agent.alert",
-        importance: 0.9,
-        summary: "yesterday",
-        handled: false,
-      }) + "\n");
+      fs.appendFileSync(
+        emergency.alertFile,
+        JSON.stringify({
+          timestamp: yesterday,
+          hash: 'hash2',
+          topic: 'agent.alert',
+          importance: 0.9,
+          summary: 'yesterday',
+          handled: false
+        }) + '\n'
+      );
 
       const count = emergency.countAlertsToday();
       assert.equal(count, 1);
     });
   });
 
-  describe("getUnhandledAlerts", () => {
-    it("returns only unhandled alerts", () => {
-      fs.appendFileSync(emergency.alertFile, JSON.stringify({
-        timestamp: new Date().toISOString(),
-        hash: "hash1",
-        topic: "agent.alert",
-        importance: 0.9,
-        summary: "unhandled",
-        handled: false,
-      }) + "\n");
+  describe('getUnhandledAlerts', () => {
+    it('returns only unhandled alerts', () => {
+      fs.appendFileSync(
+        emergency.alertFile,
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          hash: 'hash1',
+          topic: 'agent.alert',
+          importance: 0.9,
+          summary: 'unhandled',
+          handled: false
+        }) + '\n'
+      );
 
-      fs.appendFileSync(emergency.alertFile, JSON.stringify({
-        timestamp: new Date().toISOString(),
-        hash: "hash2",
-        topic: "agent.alert",
-        importance: 0.9,
-        summary: "handled",
-        handled: true,
-      }) + "\n");
+      fs.appendFileSync(
+        emergency.alertFile,
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          hash: 'hash2',
+          topic: 'agent.alert',
+          importance: 0.9,
+          summary: 'handled',
+          handled: true
+        }) + '\n'
+      );
 
       const unhandled = emergency.getUnhandledAlerts();
       assert.equal(unhandled.length, 1);
-      assert.equal(unhandled[0].summary, "unhandled");
+      assert.equal(unhandled[0].summary, 'unhandled');
     });
   });
 
-  describe("generateContextInjection", () => {
-    it("generates URGENT context from unhandled alerts", () => {
+  describe('generateContextInjection', () => {
+    it('generates URGENT context from unhandled alerts', () => {
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.95,
-        data: "critical issue",
+        data: 'critical issue'
       });
 
       emergency.processEvents();
       const injection = emergency.generateContextInjection();
 
-      assert.ok(injection.includes("⚠️ URGENT ALERTS"));
-      assert.ok(injection.includes("critical issue"));
-      assert.ok(injection.includes("immediate attention"));
+      assert.ok(injection.includes('⚠️ URGENT ALERTS'));
+      assert.ok(injection.includes('critical issue'));
+      assert.ok(injection.includes('immediate attention'));
     });
 
-    it("returns empty string when no unhandled alerts", () => {
+    it('returns empty string when no unhandled alerts', () => {
       const injection = emergency.generateContextInjection();
-      assert.equal(injection, "");
+      assert.equal(injection, '');
     });
   });
 
-  describe("markAsHandled", () => {
-    it("marks alert as handled", () => {
+  describe('markAsHandled', () => {
+    it('marks alert as handled', () => {
       const hash = emergency.hashEvent({
-        topic: "agent.alert",
-        source: "test",
-        data: "test",
+        topic: 'agent.alert',
+        source: 'test',
+        data: 'test'
       });
 
-      fs.appendFileSync(emergency.alertFile, JSON.stringify({
-        timestamp: new Date().toISOString(),
-        hash,
-        topic: "agent.alert",
-        importance: 0.9,
-        summary: "test",
-        handled: false,
-      }) + "\n");
+      fs.appendFileSync(
+        emergency.alertFile,
+        JSON.stringify({
+          timestamp: new Date().toISOString(),
+          hash,
+          topic: 'agent.alert',
+          importance: 0.9,
+          summary: 'test',
+          handled: false
+        }) + '\n'
+      );
 
       emergency.markAsHandled(hash);
 
@@ -267,15 +282,15 @@ describe("nox-emergency", () => {
     });
   });
 
-  describe("alert format", () => {
-    it("includes all required fields", () => {
+  describe('alert format', () => {
+    it('includes all required fields', () => {
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.9,
-        data: { msg: "urgent" },
-        ttl_hours: 2,
+        data: { msg: 'urgent' },
+        ttl_hours: 2
       });
 
       const alerts = emergency.processEvents();
@@ -283,7 +298,7 @@ describe("nox-emergency", () => {
 
       assert.ok(alert.timestamp);
       assert.ok(alert.hash);
-      assert.equal(alert.topic, "agent.alert");
+      assert.equal(alert.topic, 'agent.alert');
       assert.equal(alert.importance, 0.9);
       assert.ok(alert.summary);
       assert.ok(alert.expires);
@@ -291,27 +306,27 @@ describe("nox-emergency", () => {
     });
   });
 
-  describe("rate limiting", () => {
-    it("enforces max alerts per day", () => {
+  describe('rate limiting', () => {
+    it('enforces max alerts per day', () => {
       const emergency2 = new EmergencySurface(tmpDir, {
         importanceThreshold: 0.85,
-        maxAlertsPerDay: 1, // Only 1 allowed
+        maxAlertsPerDay: 1 // Only 1 allowed
       });
 
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.95,
-        data: "alert1",
+        data: 'alert1'
       });
 
       writeEvent({
         timestamp: new Date(Date.now() + 1000).toISOString(),
-        topic: "agent.alert",
-        source: "test",
+        topic: 'agent.alert',
+        source: 'test',
         importance: 0.95,
-        data: "alert2",
+        data: 'alert2'
       });
 
       const alerts = emergency2.processEvents();
@@ -319,12 +334,12 @@ describe("nox-emergency", () => {
     });
   });
 
-  describe("plugin export", () => {
-    it("exports correct structure", () => {
-      const plugin = require("../plugins/nox-emergency/index.js");
-      assert.equal(plugin.id, "nox-emergency");
-      assert.equal(plugin.name, "Nox Emergency Surface");
-      assert.equal(typeof plugin.register, "function");
+  describe('plugin export', () => {
+    it('exports correct structure', () => {
+      const plugin = require('../plugins/nox-emergency/index.js');
+      assert.equal(plugin.id, 'nox-emergency');
+      assert.equal(plugin.name, 'Nox Emergency Surface');
+      assert.equal(typeof plugin.register, 'function');
     });
   });
 });

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * connectors/index.js — Sensor Connector Registry
  *
@@ -6,8 +6,8 @@
  * Manages lifecycle: register, start, stop.
  */
 
-const FileWatchConnector = require("./filewatch.js");
-const SystemConnector = require("./system.js");
+const FileWatchConnector = require('./filewatch.js');
+const SystemConnector = require('./system.js');
 
 class ConnectorRegistry {
   constructor(workspaceRoot, eventBus) {
@@ -39,7 +39,7 @@ class ConnectorRegistry {
 
     for (const [name, connector] of this.connectors) {
       try {
-        if (connector && typeof connector.start === "function") {
+        if (connector && typeof connector.start === 'function') {
           connector.start();
         }
       } catch (err) {
@@ -48,18 +48,18 @@ class ConnectorRegistry {
       }
     }
 
-    console.log("[connectors] All connectors started");
+    console.log('[connectors] All connectors started');
   }
 
   /**
    * Stop all connectors.
    */
   stopAll() {
-    console.log("[connectors] Stopping all connectors...");
+    console.log('[connectors] Stopping all connectors...');
 
     for (const [name, connector] of this.connectors) {
       try {
-        if (connector && typeof connector.stop === "function") {
+        if (connector && typeof connector.stop === 'function') {
           connector.stop();
         }
       } catch (err) {
@@ -67,7 +67,7 @@ class ConnectorRegistry {
       }
     }
 
-    console.log("[connectors] All connectors stopped");
+    console.log('[connectors] All connectors stopped');
   }
 
   /**
@@ -81,8 +81,8 @@ class ConnectorRegistry {
    * Auto-register built-in connectors.
    */
   registerBuiltins() {
-    this.registerConnector("filewatch", FileWatchConnector);
-    this.registerConnector("system", SystemConnector);
+    this.registerConnector('filewatch', FileWatchConnector);
+    this.registerConnector('system', SystemConnector);
   }
 }
 

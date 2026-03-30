@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-memory-suite — Meta-Plugin for openclaw-memory-local
  *
@@ -17,49 +17,49 @@
  * That's it. One path, one entry.
  */
 
-const path = require("path");
+const path = require('path');
 
 // Plugin registry — id to directory name mapping
 const PLUGIN_REGISTRY = {
-  "auto-capture":      "nox-auto-capture",
-  "event-bus":         "nox-event-bus",
-  "preconscious":      "nox-preconscious",
-  "emergency":         "nox-emergency",
-  "preference-learner":"nox-preference-learner",
-  "fademem":           "nox-fademem",
-  "cooccurrence":      "nox-cooccurrence",
-  "fingerprint":       "nox-fingerprint",
+  'auto-capture': 'nox-auto-capture',
+  'event-bus': 'nox-event-bus',
+  preconscious: 'nox-preconscious',
+  emergency: 'nox-emergency',
+  'preference-learner': 'nox-preference-learner',
+  fademem: 'nox-fademem',
+  cooccurrence: 'nox-cooccurrence',
+  fingerprint: 'nox-fingerprint'
 };
 
 // Preset definitions
 const PRESETS = {
   full: Object.keys(PLUGIN_REGISTRY),
-  core: ["auto-capture", "event-bus", "preconscious", "emergency", "preference-learner"],
-  minimal: ["auto-capture", "preference-learner"],
+  core: ['auto-capture', 'event-bus', 'preconscious', 'emergency', 'preference-learner'],
+  minimal: ['auto-capture', 'preference-learner']
 };
 
 // Ordered loading (dependencies first)
 const LOAD_ORDER = [
-  "event-bus",          // Bus must be first — others may emit events
-  "auto-capture",       // Core capture
-  "preference-learner", // Learns from interactions
-  "preconscious",       // Scores events from bus
-  "emergency",          // Escalates from preconscious
-  "fademem",            // Decay (independent)
-  "cooccurrence",       // Co-occurrence tracking (independent)
-  "fingerprint",        // Topology analysis (independent, runs last)
+  'event-bus', // Bus must be first — others may emit events
+  'auto-capture', // Core capture
+  'preference-learner', // Learns from interactions
+  'preconscious', // Scores events from bus
+  'emergency', // Escalates from preconscious
+  'fademem', // Decay (independent)
+  'cooccurrence', // Co-occurrence tracking (independent)
+  'fingerprint' // Topology analysis (independent, runs last)
 ];
 
 function resolvePluginPath(shortId) {
   const dirName = PLUGIN_REGISTRY[shortId];
   if (!dirName) return null;
-  return path.resolve(__dirname, "..", dirName);
+  return path.resolve(__dirname, '..', dirName);
 }
 
 function register(api) {
   const logger = api.log || console;
   const config = api.config || {};
-  const preset = config.preset || "full";
+  const preset = config.preset || 'full';
   const overrides = config.plugins || {};
 
   logger.info(`[nox-memory-suite] Initializing with preset: ${preset}`);
@@ -92,7 +92,7 @@ function register(api) {
 
     try {
       const subPlugin = require(pluginPath);
-      if (typeof subPlugin.register === "function") {
+      if (typeof subPlugin.register === 'function') {
         subPlugin.register(api);
         loaded.push(shortId);
       } else {
@@ -106,39 +106,41 @@ function register(api) {
     }
   }
 
-  logger.info(`[nox-memory-suite] Loaded ${loaded.length}/${activeSet.size}: [${loaded.join(", ")}]`);
+  logger.info(
+    `[nox-memory-suite] Loaded ${loaded.length}/${activeSet.size}: [${loaded.join(', ')}]`
+  );
   if (failed.length > 0) {
-    logger.warn(`[nox-memory-suite] Failed: [${failed.join(", ")}]`);
+    logger.warn(`[nox-memory-suite] Failed: [${failed.join(', ')}]`);
   }
 }
 
 const plugin = {
-  id: "nox-memory-suite",
-  name: "Nox Memory Suite",
-  description: "Meta-plugin: one entry activates the full cognitive memory stack",
+  id: 'nox-memory-suite',
+  name: 'Nox Memory Suite',
+  description: 'Meta-plugin: one entry activates the full cognitive memory stack',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
     properties: {
-      enabled: { type: "boolean", default: true },
-      preset: { type: "string", enum: ["full", "core", "minimal"], default: "full" },
+      enabled: { type: 'boolean', default: true },
+      preset: { type: 'string', enum: ['full', 'core', 'minimal'], default: 'full' },
       plugins: {
-        type: "object",
+        type: 'object',
         additionalProperties: false,
         properties: {
-          "auto-capture":       { type: "boolean" },
-          "event-bus":          { type: "boolean" },
-          "preconscious":       { type: "boolean" },
-          "emergency":          { type: "boolean" },
-          "preference-learner": { type: "boolean" },
-          "fademem":            { type: "boolean" },
-          "cooccurrence":       { type: "boolean" },
-          "fingerprint":        { type: "boolean" },
-        },
-      },
-    },
+          'auto-capture': { type: 'boolean' },
+          'event-bus': { type: 'boolean' },
+          preconscious: { type: 'boolean' },
+          emergency: { type: 'boolean' },
+          'preference-learner': { type: 'boolean' },
+          fademem: { type: 'boolean' },
+          cooccurrence: { type: 'boolean' },
+          fingerprint: { type: 'boolean' }
+        }
+      }
+    }
   },
-  register,
+  register
 };
 
 module.exports = plugin;
