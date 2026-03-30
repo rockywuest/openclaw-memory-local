@@ -2,7 +2,7 @@
   "name": "openclaw-memory-local",
   "version": "2.0.0",
   "description": "Four OpenClaw plugins for persistent, local-first agent memory with behavioral preference learning",
-  "author": "Rocky W\u00fcst / FRECH & WUEST GmbH",
+  "author": "Rocky Wüst / FRECH & WUEST GmbH",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -36,6 +36,7 @@
   },
   "devDependencies": {
     "eslint": "^9.0.0",
+    "globals": "^17.4.0",
     "prettier": "^3.0.0"
   }
 }
