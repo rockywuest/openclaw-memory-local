@@ -15,6 +15,8 @@ module.exports = [
       semi: ["error", "always"],
       "no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
       "no-console": "off",
+      "no-empty": ["error", { allowEmptyCatch: true }],
+      "no-useless-escape": "warn",
     },
   },
   {
