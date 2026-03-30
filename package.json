@@ -2,7 +2,7 @@
   "name": "openclaw-memory-local",
   "version": "2.0.0",
   "description": "Four OpenClaw plugins for persistent, local-first agent memory with behavioral preference learning",
-  "author": "Rocky Wüst / FRECH & WUEST GmbH",
+  "author": "Rocky W\u00fcst / FRECH & WUEST GmbH",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -26,8 +26,8 @@
     "test:checkpoint": "node --test test/auto-checkpoint.test.js",
     "test:capture": "node --test test/auto-capture.test.js",
     "test:qdrant": "node --test test/memory-qdrant.test.js",
-    "lint": "eslint . --ext .js",
-    "lint:fix": "eslint . --ext .js --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{js,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,json,md}\""
   },
