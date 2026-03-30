@@ -6,13 +6,8 @@
   "author": "Nox AIE",
   "type": "aie-cognitive",
   "entry": "./index.js",
-  "hooks": [
-    "before_agent_start"
-  ],
-  "exports": [
-    "getAssociations",
-    "getCooccurrenceMatrix"
-  ],
+  "hooks": ["before_agent_start"],
+  "exports": ["getAssociations", "getCooccurrenceMatrix"],
   "config": {
     "enabled": true,
     "halfLifeHours": 20,

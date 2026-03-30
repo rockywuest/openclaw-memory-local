@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "description": "Scores and surfaces top insights from event bus (AIE preconscious buffer)",
   "main": "index.js",
-  "keywords": ["openclaw", "plugin", "memory", "preconscious", "aie"],
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "memory",
+    "preconscious",
+    "aie"
+  ],
   "author": "Nox",
   "license": "MIT"
 }

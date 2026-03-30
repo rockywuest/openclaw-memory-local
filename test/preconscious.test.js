@@ -1,31 +1,31 @@
-"use strict";
+'use strict';
 /**
  * Tests for nox-preconscious plugin.
  * Uses node:test + node:assert (zero deps).
  */
 
-const { describe, it, beforeEach, afterEach } = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+const { describe, it, beforeEach, afterEach } = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
-const { PreconsciousBuffer } = require("../plugins/nox-preconscious/index.js");
+const { PreconsciousBuffer } = require('../plugins/nox-preconscious/index.js');
 
-describe("nox-preconscious", () => {
+describe('nox-preconscious', () => {
   let tmpDir;
   let buffer;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "oc-precon-test-"));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'oc-precon-test-'));
     buffer = new PreconsciousBuffer(tmpDir, {
       topN: 5,
       maxTokens: 500,
-      halfLifeHours: 24,
+      halfLifeHours: 24
     });
 
     // Create events directory
-    const eventsDir = path.join(tmpDir, "memory", "events");
+    const eventsDir = path.join(tmpDir, 'memory', 'events');
     fs.mkdirSync(eventsDir, { recursive: true });
   });
 
@@ -36,49 +36,49 @@ describe("nox-preconscious", () => {
   });
 
   function writeEvent(event) {
-    fs.appendFileSync(buffer.eventFile, JSON.stringify(event) + "\n");
+    fs.appendFileSync(buffer.eventFile, JSON.stringify(event) + '\n');
   }
 
-  describe("readEvents", () => {
-    it("reads events from JSONL", () => {
+  describe('readEvents', () => {
+    it('reads events from JSONL', () => {
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "sensor.email",
-        source: "gmail",
+        topic: 'sensor.email',
+        source: 'gmail',
         importance: 0.8,
-        data: { subject: "Test" },
+        data: { subject: 'Test' }
       });
 
       const events = buffer.readEvents();
       assert.equal(events.length, 1);
-      assert.equal(events[0].topic, "sensor.email");
+      assert.equal(events[0].topic, 'sensor.email');
     });
 
-    it("returns empty array when no events", () => {
+    it('returns empty array when no events', () => {
       const events = buffer.readEvents();
       assert.deepEqual(events, []);
     });
   });
 
-  describe("scoreEvents", () => {
-    it("scores by importance × recency × reinforcement", () => {
+  describe('scoreEvents', () => {
+    it('scores by importance × recency × reinforcement', () => {
       const now = new Date();
       const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
       writeEvent({
         timestamp: yesterday.toISOString(),
-        topic: "sensor.email",
-        source: "test",
+        topic: 'sensor.email',
+        source: 'test',
         importance: 0.8,
-        data: "old",
+        data: 'old'
       });
 
       writeEvent({
         timestamp: now.toISOString(),
-        topic: "agent.insight",
-        source: "test",
+        topic: 'agent.insight',
+        source: 'test',
         importance: 0.6,
-        data: "recent",
+        data: 'recent'
       });
 
       const events = buffer.readEvents();
@@ -87,25 +87,25 @@ describe("nox-preconscious", () => {
       assert.equal(scored.length, 2);
 
       // Recent event should score higher despite lower importance
-      const recentScore = scored.find(s => s.event.data === "recent").score;
-      const oldScore = scored.find(s => s.event.data === "old").score;
+      const recentScore = scored.find(s => s.event.data === 'recent').score;
+      const oldScore = scored.find(s => s.event.data === 'old').score;
 
       // Recent: 0.6 × 1.0 × 1 = 0.6
       // Old (24h): 0.8 × 0.5 × 1 = 0.4
       assert.ok(recentScore > oldScore);
     });
 
-    it("applies half-life decay correctly", () => {
+    it('applies half-life decay correctly', () => {
       const now = Date.now();
       const halfLife = 24; // hours
 
       // Event from 24h ago
       const event24h = {
         timestamp: new Date(now - 24 * 60 * 60 * 1000).toISOString(),
-        topic: "sensor.system",
-        source: "test",
+        topic: 'sensor.system',
+        source: 'test',
         importance: 1.0,
-        data: "24h-old",
+        data: '24h-old'
       };
 
       writeEvent(event24h);
@@ -117,13 +117,13 @@ describe("nox-preconscious", () => {
       assert.ok(Math.abs(scored[0].score - 0.5) < 0.01);
     });
 
-    it("includes reinforcement count", () => {
+    it('includes reinforcement count', () => {
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "sensor.email",
-        source: "test",
+        topic: 'sensor.email',
+        source: 'test',
         importance: 0.7,
-        data: "test-event",
+        data: 'test-event'
       });
 
       const events = buffer.readEvents();
@@ -133,42 +133,42 @@ describe("nox-preconscious", () => {
     });
   });
 
-  describe("generateBuffer", () => {
-    it("generates markdown buffer with top N insights", () => {
+  describe('generateBuffer', () => {
+    it('generates markdown buffer with top N insights', () => {
       for (let i = 0; i < 10; i++) {
         writeEvent({
           timestamp: new Date().toISOString(),
-          topic: "sensor.system",
-          source: "test",
+          topic: 'sensor.system',
+          source: 'test',
           importance: 0.5 + i * 0.05,
-          data: `event-${i}`,
+          data: `event-${i}`
         });
       }
 
       const content = buffer.generateBuffer();
 
-      assert.ok(content.includes("# Preconscious Buffer"));
-      assert.ok(content.includes("Top insights"));
+      assert.ok(content.includes('# Preconscious Buffer'));
+      assert.ok(content.includes('Top insights'));
 
       // Should only include top 5
       const eventMatches = content.match(/event-\d+/g);
       assert.ok(eventMatches.length <= 5);
     });
 
-    it("respects max token limit", () => {
+    it('respects max token limit', () => {
       const shortBuffer = new PreconsciousBuffer(tmpDir, {
         topN: 10,
         maxTokens: 200, // Very small
-        halfLifeHours: 24,
+        halfLifeHours: 24
       });
 
       for (let i = 0; i < 10; i++) {
         writeEvent({
           timestamp: new Date().toISOString(),
-          topic: "sensor.email",
-          source: "test",
+          topic: 'sensor.email',
+          source: 'test',
           importance: 0.9,
-          data: "x".repeat(100), // Long data
+          data: 'x'.repeat(100) // Long data
         });
       }
 
@@ -178,39 +178,39 @@ describe("nox-preconscious", () => {
       assert.ok(estimatedTokens <= 220); // Allow small buffer
     });
 
-    it("returns empty string when no events", () => {
+    it('returns empty string when no events', () => {
       const content = buffer.generateBuffer();
-      assert.equal(content, "");
+      assert.equal(content, '');
     });
   });
 
-  describe("writeBuffer", () => {
-    it("writes buffer to file", () => {
+  describe('writeBuffer', () => {
+    it('writes buffer to file', () => {
       writeEvent({
         timestamp: new Date().toISOString(),
-        topic: "agent.insight",
-        source: "test",
+        topic: 'agent.insight',
+        source: 'test',
         importance: 0.8,
-        data: "important insight",
+        data: 'important insight'
       });
 
       buffer.writeBuffer();
 
       assert.ok(fs.existsSync(buffer.bufferFile));
-      const content = fs.readFileSync(buffer.bufferFile, "utf8");
-      assert.ok(content.includes("# Preconscious Buffer"));
-      assert.ok(content.includes("important insight"));
+      const content = fs.readFileSync(buffer.bufferFile, 'utf8');
+      assert.ok(content.includes('# Preconscious Buffer'));
+      assert.ok(content.includes('important insight'));
     });
 
-    it("handles no events gracefully", () => {
+    it('handles no events gracefully', () => {
       buffer.writeBuffer();
       // Should not crash, file may not exist
     });
   });
 
-  describe("readBuffer", () => {
-    it("reads buffer from file", () => {
-      const testContent = "# Test Buffer\n\nSome content\n";
+  describe('readBuffer', () => {
+    it('reads buffer from file', () => {
+      const testContent = '# Test Buffer\n\nSome content\n';
       const dir = path.dirname(buffer.bufferFile);
       fs.mkdirSync(dir, { recursive: true });
       fs.writeFileSync(buffer.bufferFile, testContent);
@@ -221,18 +221,18 @@ describe("nox-preconscious", () => {
 
     it("returns empty string when buffer doesn't exist", () => {
       const content = buffer.readBuffer();
-      assert.equal(content, "");
+      assert.equal(content, '');
     });
   });
 
-  describe("hashEvent", () => {
-    it("generates consistent hash for same event", () => {
+  describe('hashEvent', () => {
+    it('generates consistent hash for same event', () => {
       const event = {
         timestamp: new Date().toISOString(),
-        topic: "sensor.email",
-        source: "test",
+        topic: 'sensor.email',
+        source: 'test',
         importance: 0.7,
-        data: { subject: "Test" },
+        data: { subject: 'Test' }
       };
 
       const hash1 = buffer.hashEvent(event);
@@ -242,15 +242,15 @@ describe("nox-preconscious", () => {
       assert.equal(hash1.length, 16); // Truncated SHA256
     });
 
-    it("generates different hash for different data", () => {
+    it('generates different hash for different data', () => {
       const event1 = {
-        topic: "sensor.email",
-        data: { subject: "A" },
+        topic: 'sensor.email',
+        data: { subject: 'A' }
       };
 
       const event2 = {
-        topic: "sensor.email",
-        data: { subject: "B" },
+        topic: 'sensor.email',
+        data: { subject: 'B' }
       };
 
       const hash1 = buffer.hashEvent(event1);
@@ -260,12 +260,12 @@ describe("nox-preconscious", () => {
     });
   });
 
-  describe("plugin export", () => {
-    it("exports correct structure", () => {
-      const plugin = require("../plugins/nox-preconscious/index.js");
-      assert.equal(plugin.id, "nox-preconscious");
-      assert.equal(plugin.name, "Nox Preconscious Buffer");
-      assert.equal(typeof plugin.register, "function");
+  describe('plugin export', () => {
+    it('exports correct structure', () => {
+      const plugin = require('../plugins/nox-preconscious/index.js');
+      assert.equal(plugin.id, 'nox-preconscious');
+      assert.equal(plugin.name, 'Nox Preconscious Buffer');
+      assert.equal(typeof plugin.register, 'function');
     });
   });
 });

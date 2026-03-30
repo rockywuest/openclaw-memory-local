@@ -26,26 +26,28 @@ python3 -m mcp_server_qdrant \
 
 ```json
 {
-  "plugins": [{
-    "id": "memory-qdrant",
-    "enabled": true,
-    "config": {
-      "serverName": "qdrant-memory",
-      "factsFile": "memory/facts.jsonl",
-      "qdrantLimit": 5
+  "plugins": [
+    {
+      "id": "memory-qdrant",
+      "enabled": true,
+      "config": {
+        "serverName": "qdrant-memory",
+        "factsFile": "memory/facts.jsonl",
+        "qdrantLimit": 5
+      }
     }
-  }]
+  ]
 }
 ```
 
 ## Configuration
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `serverName` | `qdrant-memory` | mcporter server name |
-| `factsFile` | — | Path to facts.jsonl |
-| `qdrantLimit` | 5 | Max search results |
-| `knowledgeMap` | `{}` | Keyword → file mapping |
+| Option         | Default         | Description            |
+| -------------- | --------------- | ---------------------- |
+| `serverName`   | `qdrant-memory` | mcporter server name   |
+| `factsFile`    | —               | Path to facts.jsonl    |
+| `qdrantLimit`  | 5               | Max search results     |
+| `knowledgeMap` | `{}`            | Keyword → file mapping |
 
 ## License
 

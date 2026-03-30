@@ -3,7 +3,13 @@
   "version": "1.0.0",
   "description": "Cognitive Fingerprint based on memory topology for OpenClaw AIE",
   "main": "index.js",
-  "keywords": ["openclaw", "plugin", "fingerprint", "topology", "aie"],
+  "keywords": [
+    "openclaw",
+    "plugin",
+    "fingerprint",
+    "topology",
+    "aie"
+  ],
   "author": "Nox AIE",
   "license": "MIT"
 }

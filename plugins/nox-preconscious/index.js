@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-preconscious — OpenClaw Plugin
  *
@@ -12,9 +12,9 @@
  * Token limit: ~500 tokens (~2000 chars in Markdown).
  */
 
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 class PreconsciousBuffer {
   constructor(workspaceRoot, config = {}) {
@@ -22,9 +22,9 @@ class PreconsciousBuffer {
     this.topN = config.topN || 5;
     this.maxTokens = config.maxTokens || 500;
     this.halfLifeHours = config.halfLifeHours || 24;
-    this.bufferFile = path.join(workspaceRoot, "memory", "preconscious-buffer.md");
-    this.eventFile = path.join(workspaceRoot, "memory", "events", "bus.jsonl");
-    this.reinforcementFile = path.join(workspaceRoot, "memory", "events", "reinforcement.jsonl");
+    this.bufferFile = path.join(workspaceRoot, 'memory', 'preconscious-buffer.md');
+    this.eventFile = path.join(workspaceRoot, 'memory', 'events', 'bus.jsonl');
+    this.reinforcementFile = path.join(workspaceRoot, 'memory', 'events', 'reinforcement.jsonl');
   }
 
   /**
@@ -33,7 +33,7 @@ class PreconsciousBuffer {
   readEvents() {
     if (!fs.existsSync(this.eventFile)) return [];
     try {
-      const lines = fs.readFileSync(this.eventFile, "utf8").trim().split("\n");
+      const lines = fs.readFileSync(this.eventFile, 'utf8').trim().split('\n');
       return lines.filter(l => l.trim()).map(l => JSON.parse(l));
     } catch (err) {
       console.error(`[preconscious] Failed to read events: ${err.message}`);
@@ -48,12 +48,14 @@ class PreconsciousBuffer {
   readReinforcements() {
     if (!fs.existsSync(this.reinforcementFile)) return {};
     try {
-      const lines = fs.readFileSync(this.reinforcementFile, "utf8").trim().split("\n");
+      const lines = fs.readFileSync(this.reinforcementFile, 'utf8').trim().split('\n');
       const counts = {};
-      lines.filter(l => l.trim()).forEach(l => {
-        const entry = JSON.parse(l);
-        counts[entry.hash] = (counts[entry.hash] || 0) + 1;
-      });
+      lines
+        .filter(l => l.trim())
+        .forEach(l => {
+          const entry = JSON.parse(l);
+          counts[entry.hash] = (counts[entry.hash] || 0) + 1;
+        });
       return counts;
     } catch (err) {
       console.error(`[preconscious] Failed to read reinforcements: ${err.message}`);
@@ -66,7 +68,7 @@ class PreconsciousBuffer {
    */
   hashEvent(event) {
     const content = JSON.stringify({ topic: event.topic, data: event.data });
-    return crypto.createHash("sha256").update(content).digest("hex").slice(0, 16);
+    return crypto.createHash('sha256').update(content).digest('hex').slice(0, 16);
   }
 
   /**
@@ -93,7 +95,7 @@ class PreconsciousBuffer {
    */
   generateBuffer() {
     const events = this.readEvents();
-    if (events.length === 0) return "";
+    if (events.length === 0) return '';
 
     const scored = this.scoreEvents(events);
     scored.sort((a, b) => b.score - a.score);
@@ -101,32 +103,33 @@ class PreconsciousBuffer {
     const topEvents = scored.slice(0, this.topN);
 
     const lines = [
-      "# Preconscious Buffer",
-      "",
-      `Generated: ${new Date().toISOString().slice(0, 19).replace("T", " ")}`,
-      "",
-      "Top insights (importance × recency × reinforcement):",
-      "",
+      '# Preconscious Buffer',
+      '',
+      `Generated: ${new Date().toISOString().slice(0, 19).replace('T', ' ')}`,
+      '',
+      'Top insights (importance × recency × reinforcement):',
+      ''
     ];
 
     topEvents.forEach((item, idx) => {
       const e = item.event;
-      const ts = new Date(e.timestamp).toISOString().slice(0, 19).replace("T", " ");
-      const summary = typeof e.data === "object"
-        ? JSON.stringify(e.data).slice(0, 150)
-        : String(e.data).slice(0, 150);
+      const ts = new Date(e.timestamp).toISOString().slice(0, 19).replace('T', ' ');
+      const summary =
+        typeof e.data === 'object'
+          ? JSON.stringify(e.data).slice(0, 150)
+          : String(e.data).slice(0, 150);
 
       lines.push(`## ${idx + 1}. [${e.topic}] (score: ${item.score.toFixed(3)})`);
       lines.push(`- **Time:** ${ts}`);
       lines.push(`- **Importance:** ${e.importance.toFixed(2)}`);
       lines.push(`- **Reinforcement:** ${item.reinforcementCount}×`);
       lines.push(`- **Summary:** ${summary}`);
-      lines.push("");
+      lines.push('');
     });
 
-    lines.push("---");
+    lines.push('---');
 
-    const content = lines.join("\n");
+    const content = lines.join('\n');
 
     // Token limit check (rough: 1 token ≈ 4 chars)
     const estimatedTokens = content.length / 4;
@@ -134,7 +137,9 @@ class PreconsciousBuffer {
       // Truncate by reducing topN
       const ratio = this.maxTokens / estimatedTokens;
       const newTopN = Math.max(1, Math.floor(this.topN * ratio));
-      console.warn(`[preconscious] Buffer exceeds ${this.maxTokens} tokens (est. ${Math.round(estimatedTokens)}). Reducing to top ${newTopN}.`);
+      console.warn(
+        `[preconscious] Buffer exceeds ${this.maxTokens} tokens (est. ${Math.round(estimatedTokens)}). Reducing to top ${newTopN}.`
+      );
 
       // Regenerate with reduced topN
       const reducedEvents = scored.slice(0, newTopN);
@@ -142,21 +147,22 @@ class PreconsciousBuffer {
 
       reducedEvents.forEach((item, idx) => {
         const e = item.event;
-        const ts = new Date(e.timestamp).toISOString().slice(0, 19).replace("T", " ");
-        const summary = typeof e.data === "object"
-          ? JSON.stringify(e.data).slice(0, 150)
-          : String(e.data).slice(0, 150);
+        const ts = new Date(e.timestamp).toISOString().slice(0, 19).replace('T', ' ');
+        const summary =
+          typeof e.data === 'object'
+            ? JSON.stringify(e.data).slice(0, 150)
+            : String(e.data).slice(0, 150);
 
         reducedLines.push(`## ${idx + 1}. [${e.topic}] (score: ${item.score.toFixed(3)})`);
         reducedLines.push(`- **Time:** ${ts}`);
         reducedLines.push(`- **Importance:** ${e.importance.toFixed(2)}`);
         reducedLines.push(`- **Reinforcement:** ${item.reinforcementCount}×`);
         reducedLines.push(`- **Summary:** ${summary}`);
-        reducedLines.push("");
+        reducedLines.push('');
       });
 
-      reducedLines.push("---");
-      return reducedLines.join("\n");
+      reducedLines.push('---');
+      return reducedLines.join('\n');
     }
 
     return content;
@@ -168,7 +174,7 @@ class PreconsciousBuffer {
   writeBuffer() {
     const content = this.generateBuffer();
     if (!content) {
-      console.log("[preconscious] No events to buffer");
+      console.log('[preconscious] No events to buffer');
       return;
     }
 
@@ -188,12 +194,12 @@ class PreconsciousBuffer {
    * Read buffer for injection.
    */
   readBuffer() {
-    if (!fs.existsSync(this.bufferFile)) return "";
+    if (!fs.existsSync(this.bufferFile)) return '';
     try {
-      return fs.readFileSync(this.bufferFile, "utf8");
+      return fs.readFileSync(this.bufferFile, 'utf8');
     } catch (err) {
       console.error(`[preconscious] Failed to read buffer: ${err.message}`);
-      return "";
+      return '';
     }
   }
 }
@@ -213,7 +219,7 @@ async function beforeAgentStart(event, ctx) {
   if (!content) return undefined;
 
   return {
-    systemMessage: content,
+    systemMessage: content
   };
 }
 
@@ -222,43 +228,43 @@ function register(api) {
   const workspace = api.workspace || process.env.OPENCLAW_WORKSPACE || process.cwd();
   const config = api.config || {};
 
-  logger.info("[nox-preconscious] Initializing...");
+  logger.info('[nox-preconscious] Initializing...');
 
   bufferInstance = new PreconsciousBuffer(workspace, config);
 
   // Register hook
   if (api.on) {
-    api.on("before_agent_start", beforeAgentStart);
-    logger.info("[nox-preconscious] Registered before_agent_start via api.on()");
+    api.on('before_agent_start', beforeAgentStart);
+    logger.info('[nox-preconscious] Registered before_agent_start via api.on()');
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", beforeAgentStart);
-    logger.info("[nox-preconscious] Registered before_agent_start via registerHook()");
+    api.registerHook('before_agent_start', beforeAgentStart);
+    logger.info('[nox-preconscious] Registered before_agent_start via registerHook()');
   }
 
   // Expose instance for other plugins
   if (api.shared) {
     api.shared.preconsciousBuffer = bufferInstance;
-    logger.info("[nox-preconscious] Exposed as api.shared.preconsciousBuffer");
+    logger.info('[nox-preconscious] Exposed as api.shared.preconsciousBuffer');
   }
 
-  logger.info("[nox-preconscious] Ready");
+  logger.info('[nox-preconscious] Ready');
 }
 
 const plugin = {
-  id: "nox-preconscious",
-  name: "Nox Preconscious Buffer",
-  description: "Scores and surfaces top insights from event bus",
+  id: 'nox-preconscious',
+  name: 'Nox Preconscious Buffer',
+  description: 'Scores and surfaces top insights from event bus',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
     properties: {
-      enabled: { type: "boolean", default: true },
-      topN: { type: "number", default: 5, minimum: 1, maximum: 20 },
-      maxTokens: { type: "number", default: 500, minimum: 100, maximum: 2000 },
-      halfLifeHours: { type: "number", default: 24, minimum: 1 },
-    },
+      enabled: { type: 'boolean', default: true },
+      topN: { type: 'number', default: 5, minimum: 1, maximum: 20 },
+      maxTokens: { type: 'number', default: 500, minimum: 100, maximum: 2000 },
+      halfLifeHours: { type: 'number', default: 24, minimum: 1 }
+    }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

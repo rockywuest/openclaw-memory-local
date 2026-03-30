@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * system.js — System Sensor Connector
  *
@@ -6,8 +6,8 @@
  * Only emits sensor.system events when problems are detected.
  */
 
-const fs = require("fs");
-const { execSync } = require("child_process");
+const fs = require('fs');
+const { execSync } = require('child_process');
 
 class SystemConnector {
   constructor(workspaceRoot, eventBus) {
@@ -45,17 +45,20 @@ class SystemConnector {
    */
   checkDiskSpace() {
     try {
-      const output = execSync("df -h / | tail -1", { encoding: "utf8" });
+      const output = execSync('df -h / | tail -1', { encoding: 'utf8' });
       const parts = output.trim().split(/\s+/);
       const usedPercent = parseInt(parts[4]); // "85%" -> 85
 
       if (usedPercent >= this.diskThreshold) {
-        this.emitEvent({
-          type: "disk_warning",
-          message: `Disk usage critical: ${usedPercent}%`,
-          value: usedPercent,
-          threshold: this.diskThreshold,
-        }, 0.85);
+        this.emitEvent(
+          {
+            type: 'disk_warning',
+            message: `Disk usage critical: ${usedPercent}%`,
+            value: usedPercent,
+            threshold: this.diskThreshold
+          },
+          0.85
+        );
       }
     } catch (err) {
       // Silently fail (not critical)
@@ -68,19 +71,22 @@ class SystemConnector {
   checkCPUTemp() {
     try {
       // Read /sys/class/thermal/thermal_zone0/temp (millidegrees Celsius)
-      const tempPath = "/sys/class/thermal/thermal_zone0/temp";
+      const tempPath = '/sys/class/thermal/thermal_zone0/temp';
       if (!fs.existsSync(tempPath)) return;
 
-      const tempStr = fs.readFileSync(tempPath, "utf8").trim();
+      const tempStr = fs.readFileSync(tempPath, 'utf8').trim();
       const temp = parseInt(tempStr) / 1000; // Convert to °C
 
       if (temp >= this.cpuTempThreshold) {
-        this.emitEvent({
-          type: "cpu_temp_warning",
-          message: `CPU temperature high: ${temp.toFixed(1)}°C`,
-          value: temp,
-          threshold: this.cpuTempThreshold,
-        }, 0.8);
+        this.emitEvent(
+          {
+            type: 'cpu_temp_warning',
+            message: `CPU temperature high: ${temp.toFixed(1)}°C`,
+            value: temp,
+            threshold: this.cpuTempThreshold
+          },
+          0.8
+        );
       }
     } catch (err) {
       // Silently fail
@@ -93,16 +99,16 @@ class SystemConnector {
   checkMemory() {
     try {
       // Read /proc/meminfo
-      const meminfo = fs.readFileSync("/proc/meminfo", "utf8");
-      const lines = meminfo.split("\n");
+      const meminfo = fs.readFileSync('/proc/meminfo', 'utf8');
+      const lines = meminfo.split('\n');
 
       let memTotal = 0;
       let memAvailable = 0;
 
       for (const line of lines) {
-        if (line.startsWith("MemTotal:")) {
+        if (line.startsWith('MemTotal:')) {
           memTotal = parseInt(line.split(/\s+/)[1]);
-        } else if (line.startsWith("MemAvailable:")) {
+        } else if (line.startsWith('MemAvailable:')) {
           memAvailable = parseInt(line.split(/\s+/)[1]);
         }
       }
@@ -111,12 +117,15 @@ class SystemConnector {
         const usedPercent = ((memTotal - memAvailable) / memTotal) * 100;
 
         if (usedPercent >= this.memThreshold) {
-          this.emitEvent({
-            type: "memory_pressure",
-            message: `Memory usage high: ${usedPercent.toFixed(1)}%`,
-            value: usedPercent,
-            threshold: this.memThreshold,
-          }, 0.75);
+          this.emitEvent(
+            {
+              type: 'memory_pressure',
+              message: `Memory usage high: ${usedPercent.toFixed(1)}%`,
+              value: usedPercent,
+              threshold: this.memThreshold
+            },
+            0.75
+          );
         }
       }
     } catch (err) {
@@ -130,11 +139,11 @@ class SystemConnector {
   emitEvent(data, importance) {
     if (!this.eventBus) return;
 
-    this.eventBus.emit("sensor.system", {
-      source: "system",
+    this.eventBus.emit('sensor.system', {
+      source: 'system',
       importance,
       data,
-      ttl_hours: 2, // System alerts expire quickly
+      ttl_hours: 2 // System alerts expire quickly
     });
 
     console.log(`[system] ${data.type}: ${data.message}`);
@@ -148,7 +157,7 @@ class SystemConnector {
       clearInterval(this.timer);
       this.timer = null;
     }
-    console.log("[system] Monitoring stopped");
+    console.log('[system] Monitoring stopped');
   }
 }
 

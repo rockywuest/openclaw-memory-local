@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-preference-learner v1.0 — OpenClaw Plugin
  *
@@ -17,15 +17,20 @@
  * on accumulated human feedback. RLHF-lite without touching the model.
  */
 
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 // ── Config ───────────────────────────────────────────────────────
 
-const PREFS_FILE = process.env.PREFS_FILE ||
-  path.join(process.env.OPENCLAW_WORKSPACE || process.env.HOME || ".", "memory", "preferences.json");
-const LOG_FILE = path.join(path.dirname(PREFS_FILE), "preference-learner.log");
+const PREFS_FILE =
+  process.env.PREFS_FILE ||
+  path.join(
+    process.env.OPENCLAW_WORKSPACE || process.env.HOME || '.',
+    'memory',
+    'preferences.json'
+  );
+const LOG_FILE = path.join(path.dirname(PREFS_FILE), 'preference-learner.log');
 const MAX_INJECT_CHARS = 1500;
 const COOLDOWN_MS = 5_000;
 const DECAY_HALF_LIFE_DAYS = 30; // preferences fade if not reinforced
@@ -36,9 +41,12 @@ let lastProcessTime = 0;
 
 const POSITIVE_SIGNALS = [
   // Explicit praise
-  { pattern: /\b(perfekt|super|genau|richtig|gut gemacht|great|perfect|exactly|nice|👍|💪|🎯|❤️)/i, weight: 1.0 },
+  {
+    pattern: /\b(perfekt|super|genau|richtig|gut gemacht|great|perfect|exactly|nice|👍|💪|🎯|❤️)/i,
+    weight: 1.0
+  },
   { pattern: /\b(das war gut|so will ich das|weiter so|genau so|keep it up)/i, weight: 1.5 },
-  { pattern: /\b(mach|machen|mach das|go|do it|approved|freigegeben|passt)/i, weight: 0.5 },
+  { pattern: /\b(mach|machen|mach das|go|do it|approved|freigegeben|passt)/i, weight: 0.5 }
   // Implicit: user continues on topic (no correction) — handled separately
 ];
 
@@ -50,7 +58,7 @@ const NEGATIVE_SIGNALS = [
   { pattern: /\b(frag nicht|frag mich nicht|don't ask|just do it|einfach machen)/i, weight: -1.5 },
   // Frustration markers
   { pattern: /[!?]{3,}/i, weight: -0.5 },
-  { pattern: /\b(immer und immer wieder|schon wieder|again and again)/i, weight: -2.0 },
+  { pattern: /\b(immer und immer wieder|schon wieder|again and again)/i, weight: -2.0 }
 ];
 
 // ── Behavior Categories ──────────────────────────────────────────
@@ -58,47 +66,68 @@ const NEGATIVE_SIGNALS = [
 
 const BEHAVIOR_CATEGORIES = {
   autonomy: {
-    description: "Eigenständig handeln vs. nachfragen",
+    description: 'Eigenständig handeln vs. nachfragen',
     triggers: [
-      { pattern: /\b(frag nicht|frag mich nicht|einfach machen|just do|mach einfach)/i, direction: "more" },
-      { pattern: /\b(frag (mich |)erst|warte|check with me|ask first|stop)/i, direction: "less" },
-    ],
+      {
+        pattern: /\b(frag nicht|frag mich nicht|einfach machen|just do|mach einfach)/i,
+        direction: 'more'
+      },
+      { pattern: /\b(frag (mich |)erst|warte|check with me|ask first|stop)/i, direction: 'less' }
+    ]
   },
   verbosity: {
-    description: "Kurz und knapp vs. ausführlich",
+    description: 'Kurz und knapp vs. ausführlich',
     triggers: [
-      { pattern: /\b(zu (viel|lang)|kürzer|shorter|tldr|compress|fass dich kurz)/i, direction: "less" },
-      { pattern: /\b(mehr detail|ausführlicher|explain more|elaborate|genauer)/i, direction: "more" },
-    ],
+      {
+        pattern: /\b(zu (viel|lang)|kürzer|shorter|tldr|compress|fass dich kurz)/i,
+        direction: 'less'
+      },
+      {
+        pattern: /\b(mehr detail|ausführlicher|explain more|elaborate|genauer)/i,
+        direction: 'more'
+      }
+    ]
   },
   proactivity: {
-    description: "Vorschläge machen vs. nur auf Anweisung",
+    description: 'Vorschläge machen vs. nur auf Anweisung',
     triggers: [
-      { pattern: /\b(gute idee|good idea|das machen wir|interessant|clever)/i, direction: "more" },
-      { pattern: /\b(hab nicht gefragt|didn't ask|nicht nötig|brauch ich nicht|zu viel)/i, direction: "less" },
-    ],
+      { pattern: /\b(gute idee|good idea|das machen wir|interessant|clever)/i, direction: 'more' },
+      {
+        pattern: /\b(hab nicht gefragt|didn't ask|nicht nötig|brauch ich nicht|zu viel)/i,
+        direction: 'less'
+      }
+    ]
   },
   formality: {
-    description: "Formell vs. locker",
+    description: 'Formell vs. locker',
     triggers: [
-      { pattern: /\b(lockerer|entspannter|relaxter|less formal|chill)/i, direction: "less" },
-      { pattern: /\b(professioneller|formaler|more formal|seriöser)/i, direction: "more" },
-    ],
+      { pattern: /\b(lockerer|entspannter|relaxter|less formal|chill)/i, direction: 'less' },
+      { pattern: /\b(professioneller|formaler|more formal|seriöser)/i, direction: 'more' }
+    ]
   },
   technical_depth: {
-    description: "Technische Details vs. High-Level",
+    description: 'Technische Details vs. High-Level',
     triggers: [
-      { pattern: /\b(zeig mir den code|implementation|how does it work|wie genau)/i, direction: "more" },
-      { pattern: /\b(zu technisch|don't care how|egal wie|ergebnis|result only)/i, direction: "less" },
-    ],
+      {
+        pattern: /\b(zeig mir den code|implementation|how does it work|wie genau)/i,
+        direction: 'more'
+      },
+      {
+        pattern: /\b(zu technisch|don't care how|egal wie|ergebnis|result only)/i,
+        direction: 'less'
+      }
+    ]
   },
   confirmation_seeking: {
-    description: "Bestätigungen einholen vs. direkt handeln",
+    description: 'Bestätigungen einholen vs. direkt handeln',
     triggers: [
-      { pattern: /\b(frag nicht|mach einfach|just do|stop asking|hör auf zu fragen)/i, direction: "less" },
-      { pattern: /\b(zeig erst|show first|lass mich sehen|double check)/i, direction: "more" },
-    ],
-  },
+      {
+        pattern: /\b(frag nicht|mach einfach|just do|stop asking|hör auf zu fragen)/i,
+        direction: 'less'
+      },
+      { pattern: /\b(zeig erst|show first|lass mich sehen|double check)/i, direction: 'more' }
+    ]
+  }
 };
 
 // ── Preference Store ─────────────────────────────────────────────
@@ -106,15 +135,15 @@ const BEHAVIOR_CATEGORIES = {
 function loadPrefs() {
   try {
     if (fs.existsSync(PREFS_FILE)) {
-      return JSON.parse(fs.readFileSync(PREFS_FILE, "utf8"));
+      return JSON.parse(fs.readFileSync(PREFS_FILE, 'utf8'));
     }
   } catch {}
   return {
     version: 1,
     created: new Date().toISOString(),
     categories: {},
-    signals: [],  // Recent signal log (last 50)
-    stats: { total_positive: 0, total_negative: 0, total_signals: 0 },
+    signals: [], // Recent signal log (last 50)
+    stats: { total_positive: 0, total_negative: 0, total_signals: 0 }
   };
 }
 
@@ -147,14 +176,14 @@ function detectSignals(text) {
   // Check positive
   for (const sig of POSITIVE_SIGNALS) {
     if (sig.pattern.test(text)) {
-      signals.push({ type: "positive", weight: sig.weight, match: text.match(sig.pattern)?.[0] });
+      signals.push({ type: 'positive', weight: sig.weight, match: text.match(sig.pattern)?.[0] });
     }
   }
 
   // Check negative
   for (const sig of NEGATIVE_SIGNALS) {
     if (sig.pattern.test(text)) {
-      signals.push({ type: "negative", weight: sig.weight, match: text.match(sig.pattern)?.[0] });
+      signals.push({ type: 'negative', weight: sig.weight, match: text.match(sig.pattern)?.[0] });
     }
   }
 
@@ -166,7 +195,11 @@ function detectBehaviorCategory(text) {
   for (const [name, cat] of Object.entries(BEHAVIOR_CATEGORIES)) {
     for (const trigger of cat.triggers) {
       if (trigger.pattern.test(text)) {
-        categories.push({ name, direction: trigger.direction, match: text.match(trigger.pattern)?.[0] });
+        categories.push({
+          name,
+          direction: trigger.direction,
+          match: text.match(trigger.pattern)?.[0]
+        });
       }
     }
   }
@@ -189,10 +222,10 @@ function processMessage(text, prefs) {
       score: 0,
       reinforcements: 0,
       last_reinforced: null,
-      direction_history: [],
+      direction_history: []
     };
 
-    const delta = hit.direction === "more" ? 1.0 : -1.0;
+    const delta = hit.direction === 'more' ? 1.0 : -1.0;
     // Amplify if there's also a strong signal
     const signalBoost = signals.reduce((sum, s) => sum + Math.abs(s.weight), 0) || 1.0;
     cat.raw_score += delta * signalBoost;
@@ -205,13 +238,15 @@ function processMessage(text, prefs) {
     prefs.categories[hit.name] = cat;
     updated = true;
 
-    log(`BEHAVIOR ${hit.name}: ${hit.direction} (score: ${cat.raw_score.toFixed(1)}, match: "${hit.match}")`);
+    log(
+      `BEHAVIOR ${hit.name}: ${hit.direction} (score: ${cat.raw_score.toFixed(1)}, match: "${hit.match}")`
+    );
   }
 
   // Process general sentiment signals (even without behavior category)
   for (const sig of signals) {
     prefs.signals.push({ type: sig.type, weight: sig.weight, match: sig.match, ts });
-    if (sig.type === "positive") prefs.stats.total_positive++;
+    if (sig.type === 'positive') prefs.stats.total_positive++;
     else prefs.stats.total_negative++;
     prefs.stats.total_signals++;
     updated = true;
@@ -229,40 +264,46 @@ function buildPreferenceContext(prefs) {
     .filter(([_, d]) => Math.abs(d.score) >= 1.0 && d.reinforcements >= 2)
     .sort((a, b) => Math.abs(b[1].score) - Math.abs(a[1].score));
 
-  if (active.length === 0) return "";
+  if (active.length === 0) return '';
 
-  let ctx = "## LEARNED PREFERENCES (from conversation feedback)\n";
+  let ctx = '## LEARNED PREFERENCES (from conversation feedback)\n';
   ctx += "These behavioral preferences were learned from the user's direct feedback.\n";
-  ctx += "Stronger scores = more consistent feedback. Apply them.\n\n";
+  ctx += 'Stronger scores = more consistent feedback. Apply them.\n\n';
 
   for (const [name, data] of active) {
     const catInfo = BEHAVIOR_CATEGORIES[name];
-    const direction = data.score > 0 ? "MORE" : "LESS";
-    const strength = Math.abs(data.score) >= 5 ? "STRONG" : Math.abs(data.score) >= 2 ? "CLEAR" : "MILD";
-    const lastMatch = data.direction_history?.slice(-1)?.[0]?.match || "";
+    const direction = data.score > 0 ? 'MORE' : 'LESS';
+    const strength =
+      Math.abs(data.score) >= 5 ? 'STRONG' : Math.abs(data.score) >= 2 ? 'CLEAR' : 'MILD';
+    const lastMatch = data.direction_history?.slice(-1)?.[0]?.match || '';
 
     ctx += `- **${catInfo?.description || name}**: ${strength} preference for ${direction}`;
     ctx += ` (score: ${data.score.toFixed(1)}, ${data.reinforcements}x reinforced)`;
     if (lastMatch) ctx += ` — last trigger: "${lastMatch}"`;
-    ctx += "\n";
+    ctx += '\n';
   }
 
   // Add recent sentiment summary
   const recentSignals = prefs.signals.slice(-10);
-  const recentPos = recentSignals.filter(s => s.type === "positive").length;
-  const recentNeg = recentSignals.filter(s => s.type === "negative").length;
+  const recentPos = recentSignals.filter(s => s.type === 'positive').length;
+  const recentNeg = recentSignals.filter(s => s.type === 'negative').length;
   if (recentSignals.length >= 3) {
-    const mood = recentPos > recentNeg ? "mostly positive" : recentNeg > recentPos ? "mostly corrective" : "mixed";
+    const mood =
+      recentPos > recentNeg
+        ? 'mostly positive'
+        : recentNeg > recentPos
+          ? 'mostly corrective'
+          : 'mixed';
     ctx += `\nRecent feedback trend: ${mood} (${recentPos}+ / ${recentNeg}− in last ${recentSignals.length} signals)\n`;
   }
 
-  return ctx.length <= MAX_INJECT_CHARS ? ctx : ctx.slice(0, MAX_INJECT_CHARS) + "\n...\n";
+  return ctx.length <= MAX_INJECT_CHARS ? ctx : ctx.slice(0, MAX_INJECT_CHARS) + '\n...\n';
 }
 
 // ── Logging ──────────────────────────────────────────────────────
 
 function log(msg) {
-  const ts = new Date().toISOString().slice(0, 19).replace("T", " ");
+  const ts = new Date().toISOString().slice(0, 19).replace('T', ' ');
   try {
     fs.appendFileSync(LOG_FILE, `[${ts}] ${msg}\n`);
   } catch {}
@@ -278,17 +319,17 @@ async function beforeAgentStart(event, ctx) {
   if (now - lastProcessTime >= COOLDOWN_MS) {
     const messages = event?.messages;
     if (Array.isArray(messages)) {
-      const recentUser = messages.slice(-4).filter(m => m?.role === "user");
+      const recentUser = messages.slice(-4).filter(m => m?.role === 'user');
       let anyUpdated = false;
 
       for (const msg of recentUser) {
-        const text = typeof msg?.content === "string" ? msg.content : "";
+        const text = typeof msg?.content === 'string' ? msg.content : '';
         if (text.length < 10) continue;
         // Clean metadata
         const clean = text
-          .replace(/## LETZTER CHECKPOINT[\s\S]*?\*Aktualisiert:.*?\*/g, "")
-          .replace(/Conversation info \(untrusted metadata\)[\s\S]*?```\s*/g, "")
-          .replace(/Sender \(untrusted metadata\)[\s\S]*?```\s*/g, "")
+          .replace(/## LETZTER CHECKPOINT[\s\S]*?\*Aktualisiert:.*?\*/g, '')
+          .replace(/Conversation info \(untrusted metadata\)[\s\S]*?```\s*/g, '')
+          .replace(/Sender \(untrusted metadata\)[\s\S]*?```\s*/g, '')
           .trim();
         if (clean.length < 10) continue;
 
@@ -315,31 +356,34 @@ async function beforeAgentStart(event, ctx) {
 
 function register(api) {
   const logger = api.log || console;
-  logger.info("[nox-preference-learner] v1.0 registering...");
+  logger.info('[nox-preference-learner] v1.0 registering...');
 
   if (api.on) {
-    api.on("before_agent_start", beforeAgentStart);
+    api.on('before_agent_start', beforeAgentStart);
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", beforeAgentStart);
+    api.registerHook('before_agent_start', beforeAgentStart);
   }
 
   // Load existing prefs to log status
   const prefs = loadPrefs();
   const catCount = Object.keys(prefs.categories).length;
   const sigCount = prefs.stats?.total_signals || 0;
-  logger.info(`[nox-preference-learner] v1.0 ready (${catCount} categories, ${sigCount} total signals)`);
+  logger.info(
+    `[nox-preference-learner] v1.0 ready (${catCount} categories, ${sigCount} total signals)`
+  );
 }
 
 const plugin = {
-  id: "nox-preference-learner",
-  name: "Nox Preference Learner",
-  description: "Learns behavioral preferences from conversation feedback — RLHF-lite without model fine-tuning",
+  id: 'nox-preference-learner',
+  name: 'Nox Preference Learner',
+  description:
+    'Learns behavioral preferences from conversation feedback — RLHF-lite without model fine-tuning',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
-    properties: { enabled: { type: "boolean", default: true } },
+    properties: { enabled: { type: 'boolean', default: true } }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

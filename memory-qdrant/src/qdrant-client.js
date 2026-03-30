@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * Qdrant client via mcporter CLI.
  *
@@ -6,8 +6,8 @@
  * Requires mcporter configured with a qdrant-memory server.
  */
 
-const { execFile } = require("child_process");
-const { promisify } = require("util");
+const { execFile } = require('child_process');
+const { promisify } = require('util');
 const execFileAsync = promisify(execFile);
 
 // Health check cache
@@ -15,7 +15,7 @@ let lastHealthCheck = 0;
 let isHealthyCache = false;
 const HEALTH_CHECK_INTERVAL = 30000;
 
-let _serverName = "qdrant-memory";
+let _serverName = 'qdrant-memory';
 
 function configure(opts) {
   if (opts?.serverName) _serverName = opts.serverName;
@@ -27,8 +27,8 @@ async function isHealthy() {
     return isHealthyCache;
   }
   try {
-    const { stdout } = await execFileAsync("mcporter", ["list"], { timeout: 10000 });
-    isHealthyCache = stdout.includes(_serverName) && stdout.includes("healthy");
+    const { stdout } = await execFileAsync('mcporter', ['list'], { timeout: 10000 });
+    isHealthyCache = stdout.includes(_serverName) && stdout.includes('healthy');
     lastHealthCheck = now;
     return isHealthyCache;
   } catch {
@@ -45,8 +45,8 @@ async function searchMemories(query, limit = 5) {
   try {
     const safeQuery = query.substring(0, 200);
     const { stdout } = await execFileAsync(
-      "mcporter",
-      ["call", `${_serverName}.qdrant-find`, `query=${safeQuery}`],
+      'mcporter',
+      ['call', `${_serverName}.qdrant-find`, `query=${safeQuery}`],
       { timeout: 30000 }
     );
 
@@ -56,43 +56,43 @@ async function searchMemories(query, limit = 5) {
         return results.slice(0, limit).map((r, i) => ({
           id: r.id || `result-${i}`,
           score: r.score || 1.0,
-          content: r.content || r.text || r.document || (typeof r === "string" ? r : ""),
-          metadata: r.metadata || {},
+          content: r.content || r.text || r.document || (typeof r === 'string' ? r : ''),
+          metadata: r.metadata || {}
         }));
       }
       return [];
     } catch {
-      const lines = stdout.split("\n").filter(l => l.trim());
+      const lines = stdout.split('\n').filter(l => l.trim());
       return lines.slice(0, limit).map((line, i) => ({
         id: `result-${i}`,
         score: 0.8,
-        content: line.replace(/<[^>]+>/g, "").trim(),
-        metadata: {},
+        content: line.replace(/<[^>]+>/g, '').trim(),
+        metadata: {}
       }));
     }
   } catch (error) {
-    console.error("[memory-qdrant] Search error:", error.message);
+    console.error('[memory-qdrant] Search error:', error.message);
     return [];
   }
 }
 
 async function storeMemory(text, metadata = {}) {
   try {
-    const args = ["call", `${_serverName}.qdrant-store`, `information=${text}`];
+    const args = ['call', `${_serverName}.qdrant-store`, `information=${text}`];
     if (Object.keys(metadata).length > 0) {
       args.push(`metadata=${JSON.stringify(metadata)}`);
     }
-    await execFileAsync("mcporter", args, { timeout: 30000 });
+    await execFileAsync('mcporter', args, { timeout: 30000 });
     return true;
   } catch (error) {
-    console.error("[memory-qdrant] Store error:", error.message);
+    console.error('[memory-qdrant] Store error:', error.message);
     return false;
   }
 }
 
 async function getStats() {
   const healthy = await isHealthy();
-  return { healthy, backend: "mcporter/qdrant", serverName: _serverName };
+  return { healthy, backend: 'mcporter/qdrant', serverName: _serverName };
 }
 
 module.exports = { isHealthy, searchMemories, storeMemory, getStats, configure };

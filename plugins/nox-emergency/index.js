@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 /**
  * nox-emergency — OpenClaw Plugin
  *
@@ -11,17 +11,17 @@
  * - Injected as PRIORITY context before agent start
  */
 
-const fs = require("fs");
-const path = require("path");
-const crypto = require("crypto");
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 class EmergencySurface {
   constructor(workspaceRoot, config = {}) {
     this.workspaceRoot = workspaceRoot;
     this.importanceThreshold = config.importanceThreshold || 0.85;
     this.maxAlertsPerDay = config.maxAlertsPerDay || 2;
-    this.eventFile = path.join(workspaceRoot, "memory", "events", "bus.jsonl");
-    this.alertFile = path.join(workspaceRoot, "memory", "emergency-alerts.jsonl");
+    this.eventFile = path.join(workspaceRoot, 'memory', 'events', 'bus.jsonl');
+    this.alertFile = path.join(workspaceRoot, 'memory', 'emergency-alerts.jsonl');
   }
 
   /**
@@ -30,7 +30,7 @@ class EmergencySurface {
   readEvents() {
     if (!fs.existsSync(this.eventFile)) return [];
     try {
-      const lines = fs.readFileSync(this.eventFile, "utf8").trim().split("\n");
+      const lines = fs.readFileSync(this.eventFile, 'utf8').trim().split('\n');
       return lines.filter(l => l.trim()).map(l => JSON.parse(l));
     } catch (err) {
       console.error(`[emergency] Failed to read events: ${err.message}`);
@@ -44,7 +44,7 @@ class EmergencySurface {
   readAlerts() {
     if (!fs.existsSync(this.alertFile)) return [];
     try {
-      const lines = fs.readFileSync(this.alertFile, "utf8").trim().split("\n");
+      const lines = fs.readFileSync(this.alertFile, 'utf8').trim().split('\n');
       return lines.filter(l => l.trim()).map(l => JSON.parse(l));
     } catch (err) {
       console.error(`[emergency] Failed to read alerts: ${err.message}`);
@@ -59,9 +59,9 @@ class EmergencySurface {
     const content = JSON.stringify({
       topic: event.topic,
       source: event.source,
-      data: event.data,
+      data: event.data
     });
-    return crypto.createHash("sha256").update(content).digest("hex");
+    return crypto.createHash('sha256').update(content).digest('hex');
   }
 
   /**
@@ -90,7 +90,7 @@ class EmergencySurface {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.appendFileSync(this.alertFile, JSON.stringify(alert) + "\n");
+      fs.appendFileSync(this.alertFile, JSON.stringify(alert) + '\n');
     } catch (err) {
       console.error(`[emergency] Failed to write alert: ${err.message}`);
     }
@@ -105,7 +105,9 @@ class EmergencySurface {
     const alertsToday = this.countAlertsToday();
 
     if (alertsToday >= this.maxAlertsPerDay) {
-      console.log(`[emergency] Rate limit reached: ${alertsToday}/${this.maxAlertsPerDay} alerts today`);
+      console.log(
+        `[emergency] Rate limit reached: ${alertsToday}/${this.maxAlertsPerDay} alerts today`
+      );
       return [];
     }
 
@@ -133,12 +135,16 @@ class EmergencySurface {
       if (this.alertExists(hash)) continue;
 
       // Create alert
-      const summary = typeof event.data === "object"
-        ? JSON.stringify(event.data).slice(0, 100)
-        : String(event.data).slice(0, 100);
+      const summary =
+        typeof event.data === 'object'
+          ? JSON.stringify(event.data).slice(0, 100)
+          : String(event.data).slice(0, 100);
 
       const expiryStr = event.ttl_hours
-        ? new Date(new Date(event.timestamp).getTime() + event.ttl_hours * 60 * 60 * 1000).toISOString().slice(0, 19).replace("T", " ")
+        ? new Date(new Date(event.timestamp).getTime() + event.ttl_hours * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 19)
+            .replace('T', ' ')
         : null;
 
       const alert = {
@@ -148,7 +154,7 @@ class EmergencySurface {
         importance: event.importance,
         summary,
         expires: expiryStr,
-        handled: false,
+        handled: false
       };
 
       this.writeAlert(alert);
@@ -174,19 +180,21 @@ class EmergencySurface {
    */
   generateContextInjection() {
     const alerts = this.getUnhandledAlerts();
-    if (alerts.length === 0) return "";
+    if (alerts.length === 0) return '';
 
-    const lines = ["## ⚠️ URGENT ALERTS", ""];
+    const lines = ['## ⚠️ URGENT ALERTS', ''];
 
     alerts.forEach(a => {
-      const ts = new Date(a.timestamp).toISOString().slice(0, 19).replace("T", " ");
-      const expiry = a.expires ? ` — Expires: ${a.expires}` : "";
-      lines.push(`- **[${ts}]** [${a.topic}] (imp: ${a.importance.toFixed(2)}) ${a.summary}${expiry}`);
+      const ts = new Date(a.timestamp).toISOString().slice(0, 19).replace('T', ' ');
+      const expiry = a.expires ? ` — Expires: ${a.expires}` : '';
+      lines.push(
+        `- **[${ts}]** [${a.topic}] (imp: ${a.importance.toFixed(2)}) ${a.summary}${expiry}`
+      );
     });
 
-    lines.push("", "**These require immediate attention.**", "", "---", "");
+    lines.push('', '**These require immediate attention.**', '', '---', '');
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 
   /**
@@ -202,7 +210,7 @@ class EmergencySurface {
     });
 
     try {
-      const content = updated.map(a => JSON.stringify(a)).join("\n") + "\n";
+      const content = updated.map(a => JSON.stringify(a)).join('\n') + '\n';
       fs.writeFileSync(this.alertFile, content);
       console.log(`[emergency] Marked alert as handled: ${hash.slice(0, 8)}`);
     } catch (err) {
@@ -229,7 +237,7 @@ async function beforeAgentStart(event, ctx) {
   if (!injection) return undefined;
 
   return {
-    systemMessage: injection,
+    systemMessage: injection
   };
 }
 
@@ -238,42 +246,42 @@ function register(api) {
   const workspace = api.workspace || process.env.OPENCLAW_WORKSPACE || process.cwd();
   const config = api.config || {};
 
-  logger.info("[nox-emergency] Initializing...");
+  logger.info('[nox-emergency] Initializing...');
 
   emergencyInstance = new EmergencySurface(workspace, config);
 
   // Register hook
   if (api.on) {
-    api.on("before_agent_start", beforeAgentStart);
-    logger.info("[nox-emergency] Registered before_agent_start via api.on()");
+    api.on('before_agent_start', beforeAgentStart);
+    logger.info('[nox-emergency] Registered before_agent_start via api.on()');
   } else if (api.registerHook) {
-    api.registerHook("before_agent_start", beforeAgentStart);
-    logger.info("[nox-emergency] Registered before_agent_start via registerHook()");
+    api.registerHook('before_agent_start', beforeAgentStart);
+    logger.info('[nox-emergency] Registered before_agent_start via registerHook()');
   }
 
   // Expose instance for other plugins
   if (api.shared) {
     api.shared.emergencySurface = emergencyInstance;
-    logger.info("[nox-emergency] Exposed as api.shared.emergencySurface");
+    logger.info('[nox-emergency] Exposed as api.shared.emergencySurface');
   }
 
-  logger.info("[nox-emergency] Ready");
+  logger.info('[nox-emergency] Ready');
 }
 
 const plugin = {
-  id: "nox-emergency",
-  name: "Nox Emergency Surface",
-  description: "Escalates urgent events and expiring TTLs (AIE emergency surface)",
+  id: 'nox-emergency',
+  name: 'Nox Emergency Surface',
+  description: 'Escalates urgent events and expiring TTLs (AIE emergency surface)',
   configSchema: {
-    type: "object",
+    type: 'object',
     additionalProperties: false,
     properties: {
-      enabled: { type: "boolean", default: true },
-      importanceThreshold: { type: "number", default: 0.85, minimum: 0, maximum: 1 },
-      maxAlertsPerDay: { type: "number", default: 2, minimum: 1, maximum: 10 },
-    },
+      enabled: { type: 'boolean', default: true },
+      importanceThreshold: { type: 'number', default: 0.85, minimum: 0, maximum: 1 },
+      maxAlertsPerDay: { type: 'number', default: 2, minimum: 1, maximum: 10 }
+    }
   },
-  register,
+  register
 };
 
 module.exports = plugin;

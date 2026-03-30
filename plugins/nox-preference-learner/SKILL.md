@@ -14,11 +14,13 @@ compatibility: OpenClaw 2026.1.30+, Node.js >= 20
 ## What It Does
 
 Listens to your conversations and detects feedback signals:
+
 - **Positive**: "perfekt", "genau so", "gut gemacht", "mach", 👍, 💪
 - **Negative**: "wrong", "annoying", "stop that", "never again", "don't ask"  
   Also detects German: "falsch", "nervt", "frag nicht"
 
 Maps signals to 6 behavioral dimensions:
+
 1. **Autonomy** — act independently vs. ask first
 2. **Verbosity** — brief vs. detailed
 3. **Proactivity** — suggest things vs. wait for instructions
