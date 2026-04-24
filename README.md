@@ -12,7 +12,6 @@ Ten OpenClaw plugins that give your agent persistent, searchable, biologically-i
 
 > Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, behavioral adaptation, ambient awareness, and emergency escalation — all local, all open source. Core plugins (checkpoint, qdrant, auto-capture, preference-learner) running 24/7 in production since January 2026. Cognitive plugins (fademem, cooccurrence, fingerprint) are experimental — included but not yet battle-tested.
 
-
 ## Quick Example
 
 ### Before (no persistent memory)
@@ -27,8 +26,8 @@ Ten OpenClaw plugins that give your agent persistent, searchable, biologically-i
 > wasn't installed. We installed it with `pip install pandas` and verified
 > the fix by running `python analyze.py --check`.
 
-*The agent retrieved this from semantic search across yesterday's
-`memory/2026-04-23.md` file (chunk indexed in Qdrant, ~150ms recall).*
+_The agent retrieved this from semantic search across yesterday's
+`memory/2026-04-23.md` file (chunk indexed in Qdrant, ~150ms recall)._
 
 ### How memories are captured (no manual logging needed)
 
