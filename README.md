@@ -12,6 +12,41 @@ Ten OpenClaw plugins that give your agent persistent, searchable, biologically-i
 
 > Most agent memory is a glorified clipboard. Copy-paste your MEMORY.md, hope for the best. This is different: semantic search, automatic capture, behavioral adaptation, ambient awareness, and emergency escalation — all local, all open source. Core plugins (checkpoint, qdrant, auto-capture, preference-learner) running 24/7 in production since January 2026. Cognitive plugins (fademem, cooccurrence, fingerprint) are experimental — included but not yet battle-tested.
 
+
+## Quick Example
+
+### Before (no persistent memory)
+
+> **User:** What did we discuss yesterday about the Python script?
+> **Agent:** I don't have access to information from previous conversations.
+
+### After (with openclaw-memory-local)
+
+> **User:** What did we discuss yesterday about the Python script?
+> **Agent:** Yesterday you mentioned `analyze.py` was failing because pandas
+> wasn't installed. We installed it with `pip install pandas` and verified
+> the fix by running `python analyze.py --check`.
+
+*The agent retrieved this from semantic search across yesterday's
+`memory/2026-04-23.md` file (chunk indexed in Qdrant, ~150ms recall).*
+
+### How memories are captured (no manual logging needed)
+
+```text
+[User asks question] → auto-capture plugin
+                    → extracts user message
+                    → applies skip-patterns (commands, noise)
+                    → scores importance
+                    → writes to memory/YYYY-MM-DD.md
+                    → Qdrant-sync plugin embeds + indexes
+                    → memory_search() now finds it
+```
+
+You don't write `remember this`. The plugins watch what flows through
+the agent and persist what matters.
+
+---
+
 ## Why Not Just MEMORY.md?
 
 | Approach                 | Token Cost          | Recall           | Learns Facts?   | Adapts Behavior?      | Watches for You?        |
